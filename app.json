@@ -1,47 +1,47 @@
+
 {
   "expo": {
-    "name": "Natively",
-    "slug": "Natively",
+    "name": "Matchble",
+    "slug": "matchble",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/natively-dark.png",
+    "icon": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
+    "scheme": "matchble",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/natively-dark.png",
+      "image": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#F5F5F5"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Natively",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+      "bundleIdentifier": "com.matchble.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/natively-dark.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
+        "backgroundColor": "#F5F5F5"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Natively"
+      "package": "com.matchble.app"
     },
     "web": {
-      "favicon": "./assets/images/final_quest_240x240.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png"
     },
     "plugins": [
-      "expo-font",
       "expo-router",
-      "expo-web-browser"
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F5F5F5",
+          "image": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
+          "imageWidth": 200
+        }
+      ]
     ],
-    "scheme": "natively",
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "router": {}
     }
   }
 }
