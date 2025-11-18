@@ -1,8 +1,7 @@
-
 {
   "expo": {
     "name": "Matchble",
-    "slug": "matchble",
+    "slug": "Matchble",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
@@ -43,5 +42,6 @@
     "experiments": {
       "typedRoutes": true
     }
-  }
+  },
+  "scheme": "Matchble"
 }

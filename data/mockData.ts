@@ -145,3 +145,13 @@ export const sportLabels: Record<Sport, string> = {
   volley: 'Volley',
   padel: 'Padel',
 };
+
+// Re-export Firestore mock data for convenience
+export {
+  mockFirestoreMatches,
+  mockFirestoreTournaments,
+  mockFirestoreTeams,
+  mockFirestoreStandings,
+  mockFirestoreUsers,
+  mockFirestoreNotifications
+} from './firestoreMockData';
