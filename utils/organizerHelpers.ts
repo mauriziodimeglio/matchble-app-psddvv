@@ -104,6 +104,13 @@ export function getOrganizersByRegion(region: string): FirestoreOrganizer[] {
 }
 
 /**
+ * Get organizers by province
+ */
+export function getOrganizersByProvince(province: string): FirestoreOrganizer[] {
+  return allOrganizers.filter(org => org.territory?.province === province);
+}
+
+/**
  * Get national organizers
  */
 export function getNationalOrganizers(): FirestoreOrganizer[] {
@@ -175,7 +182,6 @@ export function approveVerificationRequest(
   superuserId: string
 ): { user: Partial<FirestoreUser>, request: FirestoreVerificationRequest } {
   const now = new Date();
-  const organizer = getOrganizerById(request.organizerId);
 
   // Create new affiliation
   const newAffiliation: UserAffiliation = {
@@ -242,7 +248,7 @@ export function canAccessAdminDashboard(user: FirestoreUser): boolean {
 }
 
 // ============================================
-// NEW: HIERARCHY HELPER FUNCTIONS
+// HIERARCHY HELPER FUNCTIONS
 // ============================================
 
 /**
@@ -253,17 +259,30 @@ export function getChildrenOrganizers(parentId: string): FirestoreOrganizer[] {
 }
 
 /**
+ * Get parent organizers for a child (returns array from child to root)
+ */
+export function getOrganizerParents(organizerId: string): FirestoreOrganizer[] {
+  const parents: FirestoreOrganizer[] = [];
+  let currentOrg = getOrganizerById(organizerId);
+  
+  while (currentOrg && currentOrg.parentId) {
+    const parent = getOrganizerById(currentOrg.parentId);
+    if (parent) {
+      parents.push(parent);
+      currentOrg = parent;
+    } else {
+      break;
+    }
+  }
+  
+  return parents;
+}
+
+/**
  * Get organizers by territorial level
  */
 export function getOrganizersByLevel(level: TerritorialLevel): FirestoreOrganizer[] {
   return allOrganizers.filter(org => org.level === level);
-}
-
-/**
- * Get organizers by province
- */
-export function getOrganizersByProvince(province: string): FirestoreOrganizer[] {
-  return allOrganizers.filter(org => org.territory?.province === province);
 }
 
 /**
@@ -293,6 +312,14 @@ export function getOrganizerHierarchy(organizerId: string): FirestoreOrganizer[]
   }
   
   return hierarchy;
+}
+
+/**
+ * Build hierarchy path as string
+ */
+export function buildHierarchyPath(organizer: FirestoreOrganizer): string {
+  const hierarchy = getOrganizerHierarchy(organizer.id);
+  return hierarchy.map(org => org.name).join(' > ');
 }
 
 /**
@@ -358,8 +385,15 @@ export function getOrganizersBySportAndLevel(sport: Sport, level: TerritorialLev
 }
 
 // ============================================
-// NEW: USER AFFILIATION HELPERS
+// USER AFFILIATION HELPERS
 // ============================================
+
+/**
+ * Get user's affiliations (all)
+ */
+export function getUserAffiliations(user: FirestoreUser): UserAffiliation[] {
+  return user.affiliations || [];
+}
 
 /**
  * Get active affiliations for a user
@@ -393,10 +427,10 @@ export function getUserOrganizers(user: FirestoreUser): FirestoreOrganizer[] {
 }
 
 /**
- * Check if user can manage tournaments for an organizer
+ * Check if user can manage organizer
  * User can manage if they have affiliation with organizer or any of its ancestors
  */
-export function canManageTournamentsFor(user: FirestoreUser, organizerId: string): boolean {
+export function canUserManageOrganizer(user: FirestoreUser, organizerId: string): boolean {
   if (user.role === 'superuser') {
     return true;
   }
@@ -413,6 +447,14 @@ export function canManageTournamentsFor(user: FirestoreUser, organizerId: string
   return activeAffiliations.some(aff => 
     hierarchy.some(org => org.id === aff.organizerId)
   );
+}
+
+/**
+ * Check if user can manage tournaments for an organizer
+ * User can manage if they have affiliation with organizer or any of its ancestors
+ */
+export function canManageTournamentsFor(user: FirestoreUser, organizerId: string): boolean {
+  return canUserManageOrganizer(user, organizerId);
 }
 
 /**

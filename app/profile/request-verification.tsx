@@ -4,29 +4,35 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image,
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/styles/commonStyles';
-import { mockOrganizers } from '@/data/organizersMockData';
 import { FirestoreOrganizer } from '@/types';
 import { IconSymbol } from '@/components/IconSymbol';
+import MultiOrganizerSelector from '@/components/MultiOrganizerSelector';
+import { getOrganizerById } from '@/data/organizersHierarchyData';
+import { getTerritorialLevelName } from '@/utils/organizerHelpers';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
+interface OrganizerRole {
+  organizerId: string;
+  role: string;
+}
+
 export default function RequestVerification() {
   const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [selectedOrganizer, setSelectedOrganizer] = useState<FirestoreOrganizer | null>(null);
-  const [role, setRole] = useState('');
+  const [selectedOrganizerIds, setSelectedOrganizerIds] = useState<string[]>([]);
+  const [organizerRoles, setOrganizerRoles] = useState<Record<string, string>>({});
   const [idCardUri, setIdCardUri] = useState<string | null>(null);
   const [delegationLetterUri, setDelegationLetterUri] = useState<string | null>(null);
   const [motivation, setMotivation] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const suggestedRoles = [
-    'Arbitro',
-    'Dirigente',
-    'Responsabile Comunicazione',
-    'Delegato Provinciale',
-    'Delegato Regionale',
-    'Istruttore',
-  ];
+  const suggestedRolesByLevel: Record<string, string[]> = {
+    nazionale: ['Dirigente Nazionale', 'Responsabile Comunicazione', 'Coordinatore Tecnico'],
+    regionale: ['Delegato Regionale', 'Dirigente Regionale', 'Responsabile Comunicazione Regionale'],
+    provinciale: ['Delegato Provinciale', 'Dirigente Provinciale', 'Arbitro', 'Istruttore'],
+    comunale: ['Delegato Comunale', 'Responsabile Locale'],
+    locale: ['Responsabile Locale', 'Istruttore'],
+  };
 
   const pickImage = async (type: 'idCard' | 'delegationLetter') => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -66,13 +72,17 @@ export default function RequestVerification() {
   };
 
   const handleNext = () => {
-    if (currentStep === 1 && !selectedOrganizer) {
-      Alert.alert('Attenzione', 'Seleziona un organizzatore');
+    if (currentStep === 1 && selectedOrganizerIds.length === 0) {
+      Alert.alert('Attenzione', 'Seleziona almeno un organizzatore');
       return;
     }
-    if (currentStep === 2 && !role.trim()) {
-      Alert.alert('Attenzione', 'Inserisci il tuo ruolo');
-      return;
+    if (currentStep === 2) {
+      // Check if all selected organizers have roles
+      const missingRoles = selectedOrganizerIds.filter(id => !organizerRoles[id]?.trim());
+      if (missingRoles.length > 0) {
+        Alert.alert('Attenzione', 'Inserisci il ruolo per tutti gli organizzatori selezionati');
+        return;
+      }
     }
     if (currentStep === 3 && (!idCardUri || !delegationLetterUri)) {
       Alert.alert('Attenzione', 'Carica entrambi i documenti richiesti');
@@ -102,8 +112,10 @@ export default function RequestVerification() {
     }
 
     console.log('Submitting verification request:', {
-      organizer: selectedOrganizer?.id,
-      role,
+      organizers: selectedOrganizerIds.map(id => ({
+        id,
+        role: organizerRoles[id],
+      })),
       idCard: idCardUri,
       delegationLetter: delegationLetterUri,
       motivation,
@@ -119,6 +131,17 @@ export default function RequestVerification() {
         }
       ]
     );
+  };
+
+  const getLevelBadge = (level: string) => {
+    const badges: Record<string, { emoji: string; color: string }> = {
+      nazionale: { emoji: '🇮🇹', color: '#FFD700' },
+      regionale: { emoji: '🏛️', color: '#4CAF50' },
+      provinciale: { emoji: '🏢', color: '#2196F3' },
+      comunale: { emoji: '🏘️', color: '#9C27B0' },
+      locale: { emoji: '📍', color: '#FF9800' },
+    };
+    return badges[level] || badges.locale;
   };
 
   const renderProgressBar = () => (
@@ -137,69 +160,80 @@ export default function RequestVerification() {
 
   const renderStep1 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Seleziona Organizzatore</Text>
+      <Text style={styles.stepTitle}>Seleziona Organizzatori</Text>
       <Text style={styles.stepDescription}>
-        Scegli l&apos;organizzatore per cui lavori o che rappresenti
+        Scegli uno o più organizzatori per cui lavori o che rappresenti
       </Text>
 
-      <ScrollView style={styles.organizerList} contentContainerStyle={styles.organizerListContent}>
-        {mockOrganizers.map((organizer) => (
-          <TouchableOpacity
-            key={organizer.id}
-            style={[
-              styles.organizerCard,
-              selectedOrganizer?.id === organizer.id && styles.organizerCardSelected,
-            ]}
-            onPress={() => setSelectedOrganizer(organizer)}
-          >
-            <Image source={{ uri: organizer.logo }} style={styles.organizerLogo} />
-            <View style={styles.organizerInfo}>
-              <Text style={styles.organizerName}>{organizer.name}</Text>
-              <Text style={styles.organizerFullName}>{organizer.fullName}</Text>
-              <Text style={styles.organizerScope}>
-                {organizer.scope.level === 'national' ? '🇮🇹 Nazionale' : `📍 ${organizer.scope.region}`}
-              </Text>
-            </View>
-            {selectedOrganizer?.id === organizer.id && (
-              <View style={styles.checkmark}>
-                <Text style={styles.checkmarkText}>✓</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  );
-
-  const renderStep2 = () => (
-    <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Il Tuo Ruolo</Text>
-      <Text style={styles.stepDescription}>
-        Specifica il tuo ruolo all&apos;interno dell&apos;organizzazione
-      </Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Es: Delegato Provinciale Milano"
-        placeholderTextColor={colors.textSecondary}
-        value={role}
-        onChangeText={setRole}
+      <MultiOrganizerSelector
+        selectedOrganizers={selectedOrganizerIds}
+        onSelectionChange={setSelectedOrganizerIds}
       />
-
-      <Text style={styles.suggestionsTitle}>Esempi suggeriti:</Text>
-      <View style={styles.suggestionsContainer}>
-        {suggestedRoles.map((suggestedRole, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.suggestionChip}
-            onPress={() => setRole(suggestedRole)}
-          >
-            <Text style={styles.suggestionText}>{suggestedRole}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
     </View>
   );
+
+  const renderStep2 = () => {
+    const selectedOrgs = selectedOrganizerIds
+      .map(id => getOrganizerById(id))
+      .filter((org): org is FirestoreOrganizer => org !== undefined);
+
+    return (
+      <View style={styles.stepContent}>
+        <Text style={styles.stepTitle}>Ruoli per Organizzatore</Text>
+        <Text style={styles.stepDescription}>
+          Specifica il tuo ruolo per ogni organizzatore selezionato
+        </Text>
+
+        <ScrollView style={styles.rolesContainer} contentContainerStyle={styles.rolesContent}>
+          {selectedOrgs.map(org => {
+            const levelBadge = getLevelBadge(org.level);
+            const suggestedRoles = suggestedRolesByLevel[org.level] || [];
+
+            return (
+              <View key={org.id} style={styles.roleCard}>
+                <View style={styles.roleCardHeader}>
+                  <Image source={{ uri: org.logo }} style={styles.roleOrgLogo} />
+                  <View style={styles.roleOrgInfo}>
+                    <Text style={styles.roleOrgName}>{org.name}</Text>
+                    <View style={[styles.roleLevelBadge, { backgroundColor: levelBadge.color }]}>
+                      <Text style={styles.roleLevelText}>
+                        {levelBadge.emoji} {getTerritorialLevelName(org.level)}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <TextInput
+                  style={styles.roleInput}
+                  placeholder={`Es: Delegato ${getTerritorialLevelName(org.level)}`}
+                  placeholderTextColor={colors.textSecondary}
+                  value={organizerRoles[org.id] || ''}
+                  onChangeText={(text) => setOrganizerRoles({ ...organizerRoles, [org.id]: text })}
+                />
+
+                {suggestedRoles.length > 0 && (
+                  <View style={styles.roleSuggestions}>
+                    <Text style={styles.roleSuggestionsTitle}>Suggerimenti:</Text>
+                    <View style={styles.roleSuggestionsChips}>
+                      {suggestedRoles.map((role, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.roleSuggestionChip}
+                          onPress={() => setOrganizerRoles({ ...organizerRoles, [org.id]: role })}
+                        >
+                          <Text style={styles.roleSuggestionText}>{role}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
+  };
 
   const renderStep3 = () => (
     <View style={styles.stepContent}>
@@ -283,7 +317,7 @@ export default function RequestVerification() {
 
       <TextInput
         style={styles.textArea}
-        placeholder="Gestisco i tornei CSI della provincia di..."
+        placeholder="Gestisco i tornei per gli organizzatori selezionati..."
         placeholderTextColor={colors.textSecondary}
         value={motivation}
         onChangeText={setMotivation}
@@ -297,54 +331,72 @@ export default function RequestVerification() {
     </View>
   );
 
-  const renderStep5 = () => (
-    <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Conferma</Text>
-      <Text style={styles.stepDescription}>
-        Verifica le informazioni prima di inviare
-      </Text>
+  const renderStep5 = () => {
+    const selectedOrgs = selectedOrganizerIds
+      .map(id => getOrganizerById(id))
+      .filter((org): org is FirestoreOrganizer => org !== undefined);
 
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>📋 Riepilogo</Text>
-        
-        <View style={styles.summarySection}>
-          <Text style={styles.summaryLabel}>Organizzatore:</Text>
-          <View style={styles.summaryOrganizerRow}>
-            <Image source={{ uri: selectedOrganizer?.logo }} style={styles.summaryLogo} />
-            <Text style={styles.summaryValue}>{selectedOrganizer?.name}</Text>
+    return (
+      <View style={styles.stepContent}>
+        <Text style={styles.stepTitle}>Conferma</Text>
+        <Text style={styles.stepDescription}>
+          Verifica le informazioni prima di inviare
+        </Text>
+
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>📋 Riepilogo</Text>
+          
+          <View style={styles.summarySection}>
+            <Text style={styles.summaryLabel}>
+              Organizzatori ({selectedOrgs.length}):
+            </Text>
+            {selectedOrgs.map(org => {
+              const levelBadge = getLevelBadge(org.level);
+              return (
+                <View key={org.id} style={styles.summaryOrgItem}>
+                  <Image source={{ uri: org.logo }} style={styles.summaryLogo} />
+                  <View style={styles.summaryOrgInfo}>
+                    <Text style={styles.summaryOrgName}>{org.name}</Text>
+                    <View style={[styles.summaryBadge, { backgroundColor: levelBadge.color }]}>
+                      <Text style={styles.summaryBadgeText}>
+                        {levelBadge.emoji} {getTerritorialLevelName(org.level)}
+                      </Text>
+                    </View>
+                    <Text style={styles.summaryRole}>
+                      Ruolo: {organizerRoles[org.id]}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          <View style={styles.summarySection}>
+            <Text style={styles.summaryLabel}>Documenti:</Text>
+            <Text style={styles.summaryValue}>✅ Documento d&apos;identità</Text>
+            <Text style={styles.summaryValue}>✅ Lettera di delega</Text>
+          </View>
+
+          <View style={styles.summarySection}>
+            <Text style={styles.summaryLabel}>Motivazione:</Text>
+            <Text style={styles.summaryMotivation}>{motivation}</Text>
           </View>
         </View>
 
-        <View style={styles.summarySection}>
-          <Text style={styles.summaryLabel}>Ruolo:</Text>
-          <Text style={styles.summaryValue}>{role}</Text>
-        </View>
-
-        <View style={styles.summarySection}>
-          <Text style={styles.summaryLabel}>Documenti:</Text>
-          <Text style={styles.summaryValue}>✅ Documento d&apos;identità</Text>
-          <Text style={styles.summaryValue}>✅ Lettera di delega</Text>
-        </View>
-
-        <View style={styles.summarySection}>
-          <Text style={styles.summaryLabel}>Motivazione:</Text>
-          <Text style={styles.summaryMotivation}>{motivation}</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.checkboxContainer}
+          onPress={() => setAgreedToTerms(!agreedToTerms)}
+        >
+          <View style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
+            {agreedToTerms && <Text style={styles.checkboxCheck}>✓</Text>}
+          </View>
+          <Text style={styles.checkboxLabel}>
+            Dichiaro che le informazioni fornite sono veritiere
+          </Text>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity
-        style={styles.checkboxContainer}
-        onPress={() => setAgreedToTerms(!agreedToTerms)}
-      >
-        <View style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
-          {agreedToTerms && <Text style={styles.checkboxCheck}>✓</Text>}
-        </View>
-        <Text style={styles.checkboxLabel}>
-          Dichiaro che le informazioni fornite sono veritiere
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -448,97 +500,85 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
   },
-  organizerList: {
+  rolesContainer: {
     maxHeight: 500,
   },
-  organizerListContent: {
-    gap: 12,
+  rolesContent: {
+    gap: 16,
   },
-  organizerCard: {
+  roleCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
     elevation: 2,
   },
-  organizerCardSelected: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}10`,
+  roleCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  organizerLogo: {
-    width: 56,
-    height: 56,
+  roleOrgLogo: {
+    width: 48,
+    height: 48,
     borderRadius: 8,
     marginRight: 12,
   },
-  organizerInfo: {
+  roleOrgInfo: {
     flex: 1,
   },
-  organizerName: {
+  roleOrgName: {
     fontSize: 16,
     fontWeight: '800',
     color: colors.text,
     marginBottom: 4,
   },
-  organizerFullName: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    marginBottom: 4,
+  roleLevelBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  organizerScope: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  checkmark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkmarkText: {
-    fontSize: 18,
-    fontWeight: '800',
+  roleLevelText: {
+    fontSize: 10,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
-  input: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+  roleInput: {
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 15,
     fontWeight: '500',
     color: colors.text,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+    marginBottom: 12,
   },
-  suggestionsTitle: {
-    fontSize: 14,
+  roleSuggestions: {
+    marginTop: 4,
+  },
+  roleSuggestionsTitle: {
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
-    marginTop: 8,
+    marginBottom: 8,
   },
-  suggestionsContainer: {
+  roleSuggestionsChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
-  suggestionChip: {
-    backgroundColor: colors.card,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+  roleSuggestionChip: {
+    backgroundColor: colors.background,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.primary,
   },
-  suggestionText: {
-    fontSize: 14,
+  roleSuggestionText: {
+    fontSize: 12,
     fontWeight: '600',
     color: colors.primary,
   },
@@ -637,15 +677,45 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
   },
-  summaryOrganizerRow: {
+  summaryOrgItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
   },
   summaryLogo: {
     width: 40,
     height: 40,
     borderRadius: 8,
+    marginRight: 12,
+  },
+  summaryOrgInfo: {
+    flex: 1,
+  },
+  summaryOrgName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  summaryBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  summaryBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  summaryRole: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
   },
   summaryMotivation: {
     fontSize: 14,

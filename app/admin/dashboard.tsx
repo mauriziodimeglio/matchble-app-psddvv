@@ -2,21 +2,34 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { colors, commonStyles } from '@/styles/commonStyles';
+import { colors } from '@/styles/commonStyles';
 import { mockVerificationRequests, getPendingVerificationRequests } from '@/data/verificationRequestsMockData';
 import { mockOrganizers } from '@/data/organizersMockData';
 import { mockFirestoreUsers } from '@/data/firestoreMockData';
-import { FirestoreVerificationRequest, FirestoreUser } from '@/types';
+import { FirestoreVerificationRequest, FirestoreUser, UserAffiliation } from '@/types';
 import { IconSymbol } from '@/components/IconSymbol';
+import { getActiveAffiliations, getTerritorialLevelName } from '@/utils/organizerHelpers';
+import { getOrganizerById } from '@/data/organizersHierarchyData';
 
 type TabType = 'requests' | 'organizers' | 'users';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('requests');
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
   const pendingRequests = getPendingVerificationRequests();
-  const verifiedUsers = mockFirestoreUsers.filter(u => u.role === 'verified');
+  const verifiedUsers = mockFirestoreUsers.filter(u => u.role === 'verified' || u.role === 'superuser');
+
+  const toggleUserExpanded = (userId: string) => {
+    const newExpanded = new Set(expandedUsers);
+    if (newExpanded.has(userId)) {
+      newExpanded.delete(userId);
+    } else {
+      newExpanded.add(userId);
+    }
+    setExpandedUsers(newExpanded);
+  };
 
   const renderRequestCard = (request: FirestoreVerificationRequest) => (
     <View key={request.id} style={styles.requestCard}>
@@ -114,12 +127,44 @@ export default function AdminDashboard() {
     </TouchableOpacity>
   );
 
+  const handleRevokeAffiliation = (user: FirestoreUser, affiliation: UserAffiliation) => {
+    Alert.alert(
+      'Revoca Affiliazione',
+      `Vuoi revocare l'affiliazione di ${user.displayName} con ${affiliation.organizerName}?`,
+      [
+        { text: 'Annulla', style: 'cancel' },
+        {
+          text: 'Revoca',
+          style: 'destructive',
+          onPress: () => {
+            console.log('Revoked affiliation:', { userId: user.uid, organizerId: affiliation.organizerId });
+            Alert.alert('🔓 Revocato', 'L\'affiliazione è stata revocata');
+          }
+        }
+      ]
+    );
+  };
+
+  const getLevelBadge = (level: string) => {
+    const badges: Record<string, { emoji: string; color: string }> = {
+      nazionale: { emoji: '🇮🇹', color: '#FFD700' },
+      regionale: { emoji: '🏛️', color: '#4CAF50' },
+      provinciale: { emoji: '🏢', color: '#2196F3' },
+      comunale: { emoji: '🏘️', color: '#9C27B0' },
+      locale: { emoji: '📍', color: '#FF9800' },
+    };
+    return badges[level] || badges.locale;
+  };
+
   const renderUserCard = (user: FirestoreUser) => {
     const matchesSearch = searchQuery === '' || 
       user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return null;
+
+    const activeAffiliations = getActiveAffiliations(user);
+    const isExpanded = expandedUsers.has(user.uid);
 
     return (
       <View key={user.uid} style={styles.userCard}>
@@ -133,39 +178,75 @@ export default function AdminDashboard() {
           )}
           <View style={styles.userCardInfo}>
             <Text style={styles.userCardName}>{user.displayName}</Text>
-            <Text style={styles.userCardRole}>
-              {user.role === 'verified' ? '✅ Verificato' : '👤 Normale'}
-            </Text>
-            {user.organizerRole && (
-              <Text style={styles.userCardOrganizer}>{user.organizerRole}</Text>
+            <View style={styles.userRoleBadges}>
+              {user.role === 'superuser' && (
+                <View style={styles.superuserBadgeSmall}>
+                  <Text style={styles.superuserBadgeText}>👑 Superuser</Text>
+                </View>
+              )}
+              {user.role === 'verified' && (
+                <View style={styles.verifiedBadgeSmall}>
+                  <Text style={styles.verifiedBadgeText}>✅ Verificato</Text>
+                </View>
+              )}
+            </View>
+            {activeAffiliations.length > 0 && (
+              <Text style={styles.affiliationsCount}>
+                {activeAffiliations.length} affiliazion{activeAffiliations.length === 1 ? 'e' : 'i'}
+              </Text>
             )}
           </View>
+          {activeAffiliations.length > 0 && (
+            <TouchableOpacity
+              style={styles.expandButton}
+              onPress={() => toggleUserExpanded(user.uid)}
+            >
+              <IconSymbol
+                ios_icon_name={isExpanded ? 'chevron.up' : 'chevron.down'}
+                android_material_icon_name={isExpanded ? 'expand_less' : 'expand_more'}
+                size={24}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
         </View>
-        <TouchableOpacity
-          style={styles.revokeButton}
-          onPress={() => handleRevokeVerification(user)}
-        >
-          <Text style={styles.revokeButtonText}>🔓 Revoca Verifica</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
 
-  const handleRevokeVerification = (user: FirestoreUser) => {
-    Alert.alert(
-      'Revoca Verifica',
-      `Vuoi revocare la verifica di ${user.displayName}?`,
-      [
-        { text: 'Annulla', style: 'cancel' },
-        {
-          text: 'Revoca',
-          style: 'destructive',
-          onPress: () => {
-            console.log('Revoked verification for:', user.uid);
-            Alert.alert('🔓 Revocato', 'La verifica è stata revocata');
-          }
-        }
-      ]
+        {isExpanded && activeAffiliations.length > 0 && (
+          <View style={styles.affiliationsList}>
+            <Text style={styles.affiliationsTitle}>Affiliazioni:</Text>
+            {activeAffiliations.map((affiliation, index) => {
+              const organizer = getOrganizerById(affiliation.organizerId);
+              if (!organizer) return null;
+
+              const levelBadge = getLevelBadge(organizer.level);
+
+              return (
+                <View key={index} style={styles.affiliationItem}>
+                  <Image source={{ uri: affiliation.organizerLogo }} style={styles.affiliationLogo} />
+                  <View style={styles.affiliationInfo}>
+                    <Text style={styles.affiliationName}>{affiliation.organizerName}</Text>
+                    <View style={[styles.affiliationLevelBadge, { backgroundColor: levelBadge.color }]}>
+                      <Text style={styles.affiliationLevelText}>
+                        {levelBadge.emoji} {getTerritorialLevelName(organizer.level)}
+                      </Text>
+                    </View>
+                    <Text style={styles.affiliationRole}>{affiliation.role}</Text>
+                    <Text style={styles.affiliationDate}>
+                      Verificato il {new Date(affiliation.verifiedAt).toLocaleDateString('it-IT')}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.revokeAffiliationButton}
+                    onPress={() => handleRevokeAffiliation(user, affiliation)}
+                  >
+                    <Text style={styles.revokeAffiliationText}>🔓 Revoca</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -539,7 +620,6 @@ const styles = StyleSheet.create({
   userCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
   },
   userCardAvatar: {
     width: 48,
@@ -556,25 +636,107 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 4,
   },
-  userCardRole: {
+  userRoleBadges: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 4,
+  },
+  superuserBadgeSmall: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  superuserBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#000',
+  },
+  verifiedBadgeSmall: {
+    backgroundColor: colors.calcio,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  verifiedBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  affiliationsCount: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  expandButton: {
+    padding: 8,
+  },
+  affiliationsList: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  affiliationsTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: 12,
+  },
+  affiliationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  affiliationLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  affiliationInfo: {
+    flex: 1,
+  },
+  affiliationName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  affiliationLevelBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginBottom: 4,
+  },
+  affiliationLevelText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  affiliationRole: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.calcio,
+    color: colors.primary,
     marginBottom: 2,
   },
-  userCardOrganizer: {
-    fontSize: 12,
+  affiliationDate: {
+    fontSize: 11,
     fontWeight: '500',
     color: colors.textSecondary,
   },
-  revokeButton: {
+  revokeAffiliationButton: {
     backgroundColor: colors.live,
-    paddingVertical: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 8,
-    alignItems: 'center',
   },
-  revokeButtonText: {
-    fontSize: 14,
+  revokeAffiliationText: {
+    fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
   },
