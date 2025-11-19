@@ -135,6 +135,45 @@ export function getOrganizerDisplayName(organizer: FirestoreOrganizer): string {
 }
 
 /**
+ * Create a verification request for multiple organizers
+ * @param user - The user requesting verification
+ * @param organizerRoles - Array of organizer IDs and their roles
+ * @param data - Additional verification request data
+ * @returns Array of verification request objects without IDs
+ */
+export function createMultipleVerificationRequests(
+  user: FirestoreUser,
+  organizerRoles: Array<{ organizerId: string; role: string }>,
+  data: Partial<FirestoreVerificationRequest>
+): Array<Omit<FirestoreVerificationRequest, 'id'>> {
+  return organizerRoles.map(({ organizerId, role }) => {
+    const organizer = getOrganizerById(organizerId);
+    
+    if (!organizer) {
+      throw new Error(`Organizer not found: ${organizerId}`);
+    }
+
+    return {
+      userId: user.uid,
+      userEmail: user.email,
+      userName: user.displayName,
+      userPhotoURL: user.photoURL,
+      organizerId: organizer.id,
+      organizerName: organizer.name,
+      organizerLogo: organizer.logo,
+      organizerRole: role,
+      documents: data.documents || {
+        idCard: '',
+        delegationLetter: '',
+      },
+      motivation: data.motivation || '',
+      status: 'pending',
+      createdAt: new Date(),
+    };
+  });
+}
+
+/**
  * Create a verification request
  * @param user - The user requesting verification
  * @param organizerId - The organizer ID the user wants to be verified for
@@ -473,4 +512,142 @@ export function formatAffiliationRole(affiliation: UserAffiliation): string {
     return affiliation.role;
   }
   return `${affiliation.role} - ${organizer.name}`;
+}
+
+/**
+ * Get suggested roles based on territorial level
+ */
+export function getSuggestedRoles(level: TerritorialLevel): string[] {
+  const rolesByLevel: Record<TerritorialLevel, string[]> = {
+    nazionale: [
+      'Dirigente Nazionale',
+      'Responsabile Comunicazione',
+      'Coordinatore Tecnico',
+      'Segretario Generale',
+      'Responsabile Settore Giovanile'
+    ],
+    regionale: [
+      'Delegato Regionale',
+      'Dirigente Regionale',
+      'Responsabile Comunicazione Regionale',
+      'Coordinatore Tecnico Regionale',
+      'Segretario Regionale'
+    ],
+    provinciale: [
+      'Delegato Provinciale',
+      'Dirigente Provinciale',
+      'Arbitro',
+      'Istruttore',
+      'Responsabile Comunicazione Provinciale'
+    ],
+    comunale: [
+      'Delegato Comunale',
+      'Responsabile Locale',
+      'Istruttore',
+      'Arbitro'
+    ],
+    locale: [
+      'Responsabile Locale',
+      'Istruttore',
+      'Arbitro',
+      'Volontario'
+    ],
+  };
+  
+  return rolesByLevel[level] || [];
+}
+
+/**
+ * Validate affiliation data
+ */
+export function validateAffiliation(affiliation: Partial<UserAffiliation>): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!affiliation.organizerId) {
+    errors.push('Organizer ID is required');
+  }
+  
+  if (!affiliation.role || affiliation.role.trim().length < 3) {
+    errors.push('Role must be at least 3 characters');
+  }
+  
+  if (!affiliation.organizerName) {
+    errors.push('Organizer name is required');
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Check if two affiliations conflict (same organizer or parent-child relationship)
+ */
+export function affiliationsConflict(aff1: UserAffiliation, aff2: UserAffiliation): boolean {
+  // Same organizer
+  if (aff1.organizerId === aff2.organizerId) {
+    return true;
+  }
+  
+  // Check if one is ancestor of the other
+  if (isDescendantOf(aff1.organizerId, aff2.organizerId) || 
+      isDescendantOf(aff2.organizerId, aff1.organizerId)) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Get all regions from organizers
+ */
+export function getAllRegions(): string[] {
+  const regionSet = new Set<string>();
+  allOrganizers.forEach(org => {
+    if (org.territory?.region) {
+      regionSet.add(org.territory.region);
+    }
+    if (org.scope.level === 'regional' && org.scope.region) {
+      regionSet.add(org.scope.region);
+    }
+  });
+  return Array.from(regionSet).sort();
+}
+
+/**
+ * Get all provinces for a region
+ */
+export function getProvincesForRegion(region: string): string[] {
+  const provinceSet = new Set<string>();
+  allOrganizers.forEach(org => {
+    if (org.territory?.region === region && org.territory.province) {
+      provinceSet.add(org.territory.province);
+    }
+  });
+  return Array.from(provinceSet).sort();
+}
+
+/**
+ * Format date for display
+ */
+export function formatDate(date: Date): string {
+  return new Date(date).toLocaleDateString('it-IT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+}
+
+/**
+ * Format date and time for display
+ */
+export function formatDateTime(date: Date): string {
+  return new Date(date).toLocaleDateString('it-IT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
