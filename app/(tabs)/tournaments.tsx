@@ -7,6 +7,7 @@ import { Sport } from '@/types';
 import { mockTournaments } from '@/data/mockData';
 import { sportIcons, sportLabels } from '@/data/mockData';
 import { IconSymbol } from '@/components/IconSymbol';
+import AppHeader from '@/components/AppHeader';
 
 export default function TournamentsScreen() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function TournamentsScreen() {
 
   return (
     <View style={commonStyles.container}>
+      <AppHeader />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -125,7 +127,7 @@ export default function TournamentsScreen() {
                       <View style={styles.infoRow}>
                         <IconSymbol
                           ios_icon_name="location.fill"
-                          android_material_icon_name="location-on"
+                          android_material_icon_name="location_on"
                           size={14}
                           color={colors.textSecondary}
                         />
@@ -183,7 +185,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 48,
+    paddingTop: 120,
     paddingBottom: 120,
   },
   title: {

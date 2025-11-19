@@ -1,24 +1,157 @@
 
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { sportIcons } from '@/data/mockData';
 import { mockFirestoreUsers } from '@/data/firestoreMockData';
+import AppHeader from '@/components/AppHeader';
 
 export default function ProfileScreen() {
   const isGuest = false;
+  const [showRolesModal, setShowRolesModal] = useState(false);
+  const [showDemoSelector, setShowDemoSelector] = useState(false);
+  const [selectedDemoUser, setSelectedDemoUser] = useState('user_001');
   
-  // For demo purposes, use the first user (Marco Rossi - verified)
-  // Change to user_superuser_001 to test superuser features
-  const currentUser = mockFirestoreUsers.find(u => u.uid === 'user_001');
+  // Get current demo user
+  const currentUser = mockFirestoreUsers.find(u => u.uid === selectedDemoUser);
   const isSuperuser = currentUser?.role === 'superuser';
   const isVerified = currentUser?.role === 'verified';
+
+  const demoUsers = [
+    { id: 'user_001', name: 'Marco Rossi', role: 'Delegato Verificato', icon: '✅' },
+    { id: 'user_002', name: 'Luca Bianchi', role: 'Delegato Verificato', icon: '✅' },
+    { id: 'user_003', name: 'Giuseppe Verdi', role: 'Utente Regular', icon: '👤' },
+    { id: 'user_superuser_001', name: 'Admin Matchble', role: 'Superuser', icon: '👑' },
+  ];
+
+  const RolesModal = () => (
+    <Modal
+      visible={showRolesModal}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setShowRolesModal(false)}
+    >
+      <TouchableOpacity 
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowRolesModal(false)}
+      >
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Ruoli Utente</Text>
+          
+          <View style={styles.roleCard}>
+            <Text style={styles.roleEmoji}>👤</Text>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleName}>Utente Regular</Text>
+              <Text style={styles.roleDescription}>
+                - Visualizza risultati e classifiche{'\n'}
+                - Crea tornei non ufficiali{'\n'}
+                - Pubblica risultati partite
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.roleCard}>
+            <Text style={styles.roleEmoji}>✅</Text>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleName}>Delegato Verificato</Text>
+              <Text style={styles.roleDescription}>
+                - Tutti i permessi di Utente Regular{'\n'}
+                - Crea tornei ufficiali per organizzatori affiliati{'\n'}
+                - Gestisce risultati e classifiche ufficiali{'\n'}
+                - Può avere affiliazioni multiple
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.roleCard}>
+            <Text style={styles.roleEmoji}>👑</Text>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleName}>Superuser</Text>
+              <Text style={styles.roleDescription}>
+                - Controllo totale del sistema{'\n'}
+                - Autorizza/revoca delegati verificati{'\n'}
+                - Gestisce tutti gli organizzatori{'\n'}
+                - Accesso dashboard amministrativa
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setShowRolesModal(false)}
+          >
+            <Text style={styles.modalCloseText}>Chiudi</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const DemoSelectorModal = () => (
+    <Modal
+      visible={showDemoSelector}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setShowDemoSelector(false)}
+    >
+      <TouchableOpacity 
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowDemoSelector(false)}
+      >
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Seleziona Profilo Demo</Text>
+          <Text style={styles.modalSubtitle}>
+            Cambia profilo per testare diverse funzionalità
+          </Text>
+          
+          {demoUsers.map((user, index) => (
+            <React.Fragment key={index}>
+              <TouchableOpacity
+                style={[
+                  styles.demoUserCard,
+                  selectedDemoUser === user.id && styles.demoUserCardActive
+                ]}
+                onPress={() => {
+                  setSelectedDemoUser(user.id);
+                  setShowDemoSelector(false);
+                }}
+              >
+                <Text style={styles.demoUserEmoji}>{user.icon}</Text>
+                <View style={styles.demoUserInfo}>
+                  <Text style={styles.demoUserName}>{user.name}</Text>
+                  <Text style={styles.demoUserRole}>{user.role}</Text>
+                </View>
+                {selectedDemoUser === user.id && (
+                  <IconSymbol
+                    ios_icon_name="checkmark.circle.fill"
+                    android_material_icon_name="check_circle"
+                    size={24}
+                    color={colors.primary}
+                  />
+                )}
+              </TouchableOpacity>
+            </React.Fragment>
+          ))}
+
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setShowDemoSelector(false)}
+          >
+            <Text style={styles.modalCloseText}>Chiudi</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
 
   if (isGuest) {
     return (
       <View style={commonStyles.container}>
+        <AppHeader />
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.guestContent}
@@ -99,11 +232,34 @@ export default function ProfileScreen() {
 
   return (
     <View style={commonStyles.container}>
+      <AppHeader />
+      <RolesModal />
+      <DemoSelectorModal />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Demo Mode Banner */}
+        <TouchableOpacity
+          style={styles.demoBanner}
+          onPress={() => setShowDemoSelector(true)}
+        >
+          <Text style={styles.demoBannerEmoji}>🎭</Text>
+          <View style={styles.demoBannerContent}>
+            <Text style={styles.demoBannerTitle}>Modalità Demo</Text>
+            <Text style={styles.demoBannerSubtitle}>
+              Profilo: {currentUser?.displayName} ({currentUser?.role === 'superuser' ? 'Superuser' : currentUser?.role === 'verified' ? 'Verificato' : 'Regular'})
+            </Text>
+          </View>
+          <IconSymbol
+            ios_icon_name="chevron.right"
+            android_material_icon_name="chevron_right"
+            size={24}
+            color={colors.primary}
+          />
+        </TouchableOpacity>
+
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
             {currentUser?.photoURL ? (
@@ -139,6 +295,23 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* Roles Info Button */}
+        <View style={styles.infoSection}>
+          <TouchableOpacity
+            style={styles.infoButton}
+            onPress={() => setShowRolesModal(true)}
+          >
+            <Text style={styles.infoButtonEmoji}>ℹ️</Text>
+            <Text style={styles.infoButtonText}>Scopri i Ruoli Utente</Text>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron_right"
+              size={24}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
+        </View>
+
         {/* Superuser Dashboard Button */}
         {isSuperuser && (
           <View style={styles.adminSection}>
@@ -152,7 +325,7 @@ export default function ProfileScreen() {
                 ios_icon_name="chevron.right"
                 android_material_icon_name="chevron_right"
                 size={24}
-                color="#FFFFFF"
+                color="#000"
               />
             </TouchableOpacity>
           </View>
@@ -264,14 +437,162 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 48,
+    paddingTop: 120,
     paddingBottom: 120,
   },
   guestContent: {
-    paddingTop: 80,
+    paddingTop: 140,
     paddingHorizontal: 24,
     alignItems: 'center',
     paddingBottom: 120,
+  },
+  demoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#FFB74D',
+  },
+  demoBannerEmoji: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  demoBannerContent: {
+    flex: 1,
+  },
+  demoBannerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  demoBannerSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  infoSection: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  infoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  infoButtonEmoji: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  infoButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  roleCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.background,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  roleEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  roleInfo: {
+    flex: 1,
+  },
+  roleName: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  roleDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  demoUserCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  demoUserCardActive: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}10`,
+  },
+  demoUserEmoji: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  demoUserInfo: {
+    flex: 1,
+  },
+  demoUserName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  demoUserRole: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  modalCloseButton: {
+    backgroundColor: colors.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  modalCloseText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.card,
   },
   guestEmoji: {
     fontSize: 96,

@@ -8,6 +8,7 @@ import { mockMatches } from '@/data/mockData';
 import SportFilter from '@/components/SportFilter';
 import MatchCard from '@/components/MatchCard';
 import { IconSymbol } from '@/components/IconSymbol';
+import AppHeader from '@/components/AppHeader';
 
 const SPORT_CONFIGS = {
   calcio: {
@@ -67,6 +68,11 @@ export default function HomeScreen() {
         style={styles.heroGradient}
       >
         <View style={styles.heroContent}>
+          <Image
+            source={require('@/assets/images/1130396b-2aa5-4881-97af-7f098b638ae7.png')}
+            style={styles.heroLogo}
+            resizeMode="contain"
+          />
           <Text style={styles.heroTitle}>Matchble</Text>
           <Text style={styles.heroSubtitle}>Per chi gioca</Text>
           <Text style={styles.heroDescription}>
@@ -147,6 +153,7 @@ export default function HomeScreen() {
 
   return (
     <View style={commonStyles.container}>
+      <AppHeader />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -216,7 +223,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 48,
+    paddingTop: 120,
     paddingBottom: 120,
   },
   heroSection: {
@@ -232,6 +239,11 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     alignItems: 'center',
+  },
+  heroLogo: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
   },
   heroTitle: {
     fontSize: 42,

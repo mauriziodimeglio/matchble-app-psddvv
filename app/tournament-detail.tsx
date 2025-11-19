@@ -6,6 +6,7 @@ import { colors, commonStyles } from '@/styles/commonStyles';
 import { mockTournaments } from '@/data/mockData';
 import { sportIcons } from '@/data/mockData';
 import { IconSymbol } from '@/components/IconSymbol';
+import AppHeader from '@/components/AppHeader';
 
 type TabType = 'standings' | 'matches' | 'teams' | 'info';
 
@@ -19,6 +20,7 @@ export default function TournamentDetailScreen() {
   if (!tournament) {
     return (
       <View style={commonStyles.container}>
+        <AppHeader />
         <Text style={commonStyles.text}>Torneo non trovato</Text>
       </View>
     );
@@ -52,6 +54,7 @@ export default function TournamentDetailScreen() {
 
   return (
     <View style={commonStyles.container}>
+      <AppHeader />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -64,7 +67,7 @@ export default function TournamentDetailScreen() {
         >
           <IconSymbol
             ios_icon_name="chevron.left"
-            android_material_icon_name="arrow-back"
+            android_material_icon_name="arrow_back"
             size={24}
             color={colors.text}
           />
@@ -274,7 +277,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 48,
+    paddingTop: 120,
     paddingBottom: 40,
   },
   backButton: {
