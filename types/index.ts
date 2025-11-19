@@ -17,16 +17,16 @@ export type TournamentLevel = 'beginner' | 'intermediate' | 'advanced' | 'open';
 
 export type FormResult = 'W' | 'L' | 'D';
 
-export type UserRole = 'regular' | 'verified' | 'superuser';
+export type UserRole = 'regular' | 'verified' | 'club_manager' | 'superuser';
 
 export type OrganizerType = 'national' | 'regional' | 'private';
 
 export type VerificationRequestStatus = 'pending' | 'approved' | 'rejected';
 
-// NEW: Territorial hierarchy types
 export type TerritorialLevel = 'nazionale' | 'regionale' | 'provinciale' | 'comunale' | 'locale';
 
-// Import permission types
+export type Gender = 'male' | 'female' | 'mixed';
+
 import { PermissionsType, PermissionPreset } from './permissions';
 export type { PermissionsType, PermissionPreset };
 
@@ -35,6 +35,7 @@ export interface Team {
   name: string;
   logo?: string;
   score?: number;
+  gender?: Gender;
 }
 
 export interface Match {
@@ -57,6 +58,7 @@ export interface Match {
     name: string;
   };
   media?: string[];
+  gender?: Gender;
 }
 
 export interface Tournament {
@@ -75,6 +77,7 @@ export interface Tournament {
   maxTeams: number;
   registeredTeams: number;
   isPublic: boolean;
+  gender?: Gender;
 }
 
 export interface Standing {
@@ -102,39 +105,31 @@ export interface UserProfile {
   };
 }
 
-// ============================================
-// ORGANIZER TYPES - UPDATED WITH HIERARCHY
-// ============================================
-
 export interface FirestoreOrganizer {
   id: string;
-  name: string; // "FIPAV Napoli"
+  name: string;
   fullName: string;
-  acronym: string; // "FIPAV"
+  acronym: string;
   logo: string;
   color: string;
   description: string;
   sport: Sport;
   type: OrganizerType;
   
-  // NEW: Gerarchia territoriale
-  parentId?: string; // ID organizzatore parent (FIPAV Napoli → parent: FIPAV Campania)
-  rootId: string; // ID federazione/ente nazionale (sempre FIPAV nazionale)
+  parentId?: string;
+  rootId: string;
   level: TerritorialLevel;
   
-  // NEW: Territorio
   territory: {
-    region?: string; // "Campania"
-    province?: string; // "Napoli"
-    city?: string; // "Napoli"
-    code?: string; // Codice ufficiale (es: "NA" per provincia)
+    region?: string;
+    province?: string;
+    city?: string;
+    code?: string;
   };
   
-  // NEW: Gerarchia
-  children?: string[]; // IDs organizzatori figli
-  hierarchyPath: string; // "FIPAV > Campania > Napoli"
+  children?: string[];
+  hierarchyPath: string;
   
-  // Existing fields (kept for backwards compatibility)
   scope: {
     level: 'national' | 'regional';
     region?: string;
@@ -148,10 +143,6 @@ export interface FirestoreOrganizer {
   createdAt: Date;
 }
 
-// ============================================
-// VERIFICATION REQUEST TYPES - UPDATED WITH PERMISSIONS
-// ============================================
-
 export interface FirestoreVerificationRequest {
   id: string;
   userId: string;
@@ -161,70 +152,68 @@ export interface FirestoreVerificationRequest {
   organizerId: string;
   organizerName: string;
   organizerLogo: string;
-  organizerRole: string; // "Delegato Regionale"
+  organizerRole: string;
   
-  // Documenti
   documents: {
-    idCard: string; // URL documento identità
-    delegationLetter: string; // URL lettera delega
+    idCard: string;
+    delegationLetter: string;
   };
   
-  // Motivazione
-  motivation: string; // Testo libero
+  motivation: string;
   
-  // Status
   status: VerificationRequestStatus;
-  reviewedBy?: string; // superuser userId
+  reviewedBy?: string;
   reviewedAt?: Date;
   rejectionReason?: string;
   
-  // NEW: Permission configuration
-  permissionsPreset?: PermissionPreset; // 'base' | 'manager' | 'custom'
-  customPermissions?: PermissionsType; // Only if preset is 'custom'
+  permissionsPreset?: PermissionPreset;
+  customPermissions?: PermissionsType;
   
   createdAt: Date;
 }
-
-// ============================================
-// USER AFFILIATION TYPE - UPDATED WITH PERMISSIONS
-// ============================================
 
 export interface UserAffiliation {
   organizerId: string;
   organizerName: string;
   organizerLogo: string;
-  role: string; // "Delegato Provinciale"
-  verifiedBy: string; // superuser userId
+  role: string;
+  verifiedBy: string;
   verifiedAt: Date;
   active: boolean;
   
-  // NEW: Granular permissions for this affiliation
   permissions?: PermissionsType;
-  permissionsPreset?: PermissionPreset; // Track which preset was used
+  permissionsPreset?: PermissionPreset;
 }
 
-// ============================================
-// FIREBASE FIRESTORE DOCUMENT TYPES
-// ============================================
+export interface SportsClub {
+  id: string;
+  name: string;
+  logo: string;
+  sport: Sport;
+  city: string;
+  region: string;
+  foundedYear: number;
+  description: string;
+  managerId: string;
+  managerName: string;
+  teams: string[];
+  verified: boolean;
+  createdAt: Date;
+}
 
-/**
- * Match document structure for Firestore
- * Collection: matches
- */
 export interface FirestoreMatch {
   id: string;
   sport: Sport;
   matchType: 'tournament' | 'friendly';
   date: Date;
   status: MatchStatus;
+  gender: Gender;
   
-  // Teams & Scores
   homeTeam: string;
   awayTeam: string;
   homeScore: number;
   awayScore: number;
   
-  // Location
   location: {
     name: string;
     address: string;
@@ -232,41 +221,32 @@ export interface FirestoreMatch {
     coordinates: { lat: number; lng: number };
   };
   
-  // Tournament reference (if applicable)
   tournamentId: string | null;
   tournamentName: string | null;
   
-  // Media
   photos: string[];
   
-  // Metadata
-  submittedBy: string; // userId
+  submittedBy: string;
   submittedByName: string;
   verified: boolean;
   verificationStatus: VerificationStatus;
   createdAt: Date;
   updatedAt: Date;
   
-  // Stats (optional)
-  mvp: string | null; // userId
+  mvp: string | null;
   attendance: number | null;
 }
 
-/**
- * Tournament document structure for Firestore
- * Collection: tournaments
- */
 export interface FirestoreTournament {
   id: string;
   name: string;
   sport: Sport;
+  gender: Gender;
   
-  // Dates
   startDate: Date;
   endDate: Date;
   registrationDeadline: Date;
   
-  // Location
   location: {
     name: string;
     city: string;
@@ -274,32 +254,26 @@ export interface FirestoreTournament {
     coordinates: { lat: number; lng: number };
   };
   
-  // Config
   maxTeams: number;
   currentTeams: number;
   format: TournamentFormat;
   level: TournamentLevel;
   
-  // Status
   status: TournamentStatus;
   isPublic: boolean;
   
-  // Details
   description: string;
   rules: string;
   prizePool: string | null;
   entryFee: number | null;
   
-  // Media
   coverImage: string;
   
-  // Organizer
-  organizerId: string; // userId or organizer id
+  organizerId: string;
   organizerName: string;
   organizerContact: string;
   organizerLogo?: string;
   
-  // Official tournament fields
   isOfficial: boolean;
   championshipInfo?: {
     season: string;
@@ -308,39 +282,34 @@ export interface FirestoreTournament {
   };
   verifiedBy?: string;
   
-  // Metadata
+  clubId?: string;
+  
   createdAt: Date;
   updatedAt: Date;
   
-  // Stats
   totalMatches: number;
   completedMatches: number;
   views: number;
 }
 
-/**
- * Team document structure for Firestore
- * Collection: teams
- */
 export interface FirestoreTeam {
   id: string;
   name: string;
   sport: Sport;
   city: string;
+  gender: Gender;
   
-  // Visual
   logo: string | null;
   color: string;
   
-  // Captain
-  captainId: string; // userId
+  captainId: string;
   captainName: string;
   
-  // Members
-  playerIds: string[]; // userIds
+  playerIds: string[];
   playerCount: number;
   
-  // Stats
+  clubId?: string;
+  
   matchesPlayed: number;
   wins: number;
   losses: number;
@@ -349,24 +318,17 @@ export interface FirestoreTeam {
   goalsAgainst: number;
   points: number;
   
-  // Metadata
   createdAt: Date;
   verified: boolean;
 }
 
-/**
- * Standing document structure for Firestore
- * Collection: standings
- * Document ID format: "tournamentId_teamId"
- */
 export interface FirestoreStanding {
-  id: string; // "tournamentId_teamId"
+  id: string;
   tournamentId: string;
   teamId: string;
   teamName: string;
   sport: string;
   
-  // Stats
   position: number;
   played: number;
   won: number;
@@ -377,91 +339,66 @@ export interface FirestoreStanding {
   goalDifference: number;
   points: number;
   
-  // Form (last 5 matches)
   form: FormResult[];
   
-  // Metadata
   lastUpdated: Date;
 }
 
-/**
- * User document structure for Firestore - UPDATED WITH MULTIPLE AFFILIATIONS
- * Collection: users
- * Document ID: Firebase Auth UID
- */
 export interface FirestoreUser {
-  uid: string; // from Firebase Auth
+  uid: string;
   email: string;
   displayName: string;
   photoURL: string | null;
   
-  // Preferences
   favoriteSports: Sport[];
   favoriteCity: string;
-  favoriteTeams: string[]; // teamIds
+  favoriteTeams: string[];
   
-  // Stats
   matchesSubmitted: number;
   tournamentsCreated: number;
   tournamentsJoined: number;
   
-  // Settings
   notificationsEnabled: boolean;
   notificationToken: string | null;
   
-  // Trust & Reputation
-  trustScore: number; // 0-100
+  trustScore: number;
   verifiedMatches: number;
   rejectedMatches: number;
   
-  // User role and verification
   role: UserRole;
-  verifiedBy?: string; // superuser userId (deprecated - use affiliations)
-  verifiedAt?: Date; // deprecated - use affiliations
+  verifiedBy?: string;
+  verifiedAt?: Date;
   
-  // NEW: Multiple affiliations support with permissions
   affiliations: UserAffiliation[];
   
-  // DEPRECATED: Single organizer fields (kept for backwards compatibility)
+  managedClubId?: string;
+  
   organizerId?: string;
   organizerRole?: string;
   canCreateOfficialTournaments: boolean;
   
-  // Metadata
   createdAt: Date;
   lastActive: Date;
 }
 
-/**
- * Notification document structure for Firestore
- * Collection: notifications
- */
 export interface FirestoreNotification {
   id: string;
   userId: string;
   type: NotificationType;
   
-  // Content
   title: string;
   body: string;
-  icon: string; // emoji
+  icon: string;
   
-  // References
-  referenceId: string; // matchId | tournamentId
+  referenceId: string;
   referenceType: ReferenceType;
   
-  // Status
   read: boolean;
   readAt: Date | null;
   
-  // Metadata
   createdAt: Date;
 }
 
-/**
- * Firestore Index Configuration
- * These indexes should be created in Firebase Console for optimal performance
- */
 export interface FirestoreIndexes {
   matches: {
     composite: [
@@ -484,4 +421,46 @@ export interface FirestoreIndexes {
       ['favoriteCity', 'favoriteSports']
     ];
   };
+}
+
+export interface BulkUploadTeam {
+  name: string;
+  gender: Gender;
+  clubId?: string;
+  city: string;
+}
+
+export interface BulkUploadTournament {
+  name: string;
+  sport: Sport;
+  gender: Gender;
+  startDate: string;
+  endDate: string;
+  city: string;
+  maxTeams: number;
+  division?: string;
+  group?: string;
+}
+
+export interface BulkUploadMatchDay {
+  tournamentId: string;
+  date: string;
+  matches: Array<{
+    homeTeam: string;
+    awayTeam: string;
+    homeScore?: number;
+    awayScore?: number;
+    venue: string;
+  }>;
+}
+
+export interface ScoringSystem {
+  sport: Sport;
+  winPoints: number;
+  drawPoints: number;
+  lossPoints: number;
+  bonusPoints?: {
+    type: string;
+    points: number;
+  }[];
 }

@@ -14,15 +14,16 @@ export default function ProfileScreen() {
   const [showDemoSelector, setShowDemoSelector] = useState(false);
   const [selectedDemoUser, setSelectedDemoUser] = useState('user_001');
   
-  // Get current demo user
   const currentUser = mockFirestoreUsers.find(u => u.uid === selectedDemoUser);
   const isSuperuser = currentUser?.role === 'superuser';
   const isVerified = currentUser?.role === 'verified';
+  const isClubManager = currentUser?.role === 'club_manager';
 
   const demoUsers = [
     { id: 'user_001', name: 'Marco Rossi', role: 'Delegato Verificato', icon: '✅' },
     { id: 'user_002', name: 'Luca Bianchi', role: 'Delegato Verificato', icon: '✅' },
     { id: 'user_003', name: 'Giuseppe Verdi', role: 'Utente Regular', icon: '👤' },
+    { id: 'user_club_001', name: 'Anna Ferrari', role: 'Responsabile Società', icon: '🏢' },
     { id: 'user_superuser_001', name: 'Admin Matchble', role: 'Superuser', icon: '👑' },
   ];
 
@@ -61,7 +62,22 @@ export default function ProfileScreen() {
                 - Tutti i permessi di Utente Regular{'\n'}
                 - Crea tornei ufficiali per organizzatori affiliati{'\n'}
                 - Gestisce risultati e classifiche ufficiali{'\n'}
+                - Caricamento massivo squadre e tornei{'\n'}
                 - Può avere affiliazioni multiple
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.roleCard}>
+            <Text style={styles.roleEmoji}>🏢</Text>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleName}>Responsabile Società</Text>
+              <Text style={styles.roleDescription}>
+                - Gestisce una società sportiva{'\n'}
+                - Crea e gestisce squadre (maschili/femminili){'\n'}
+                - Iscrive squadre ai tornei{'\n'}
+                - Gestisce atleti e staff{'\n'}
+                - Visualizza statistiche società
               </Text>
             </View>
           </View>
@@ -74,6 +90,7 @@ export default function ProfileScreen() {
                 - Controllo totale del sistema{'\n'}
                 - Autorizza/revoca delegati verificati{'\n'}
                 - Gestisce tutti gli organizzatori{'\n'}
+                - Caricamento massivo dati{'\n'}
                 - Accesso dashboard amministrativa
               </Text>
             </View>
@@ -205,6 +222,7 @@ export default function ProfileScreen() {
           <TouchableOpacity 
             style={[buttonStyles.primary, styles.registerButton]}
             activeOpacity={0.8}
+            onPress={() => router.push('/auth/register')}
           >
             <Text style={styles.buttonText}>Registrati</Text>
           </TouchableOpacity>
@@ -225,6 +243,15 @@ export default function ProfileScreen() {
               <Text style={styles.socialButtonText}>Google</Text>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={styles.loginLink}
+            onPress={() => router.push('/auth/login')}
+          >
+            <Text style={styles.loginLinkText}>
+              Hai già un account? <Text style={styles.loginLinkBold}>Accedi</Text>
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
     );
@@ -240,7 +267,6 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Demo Mode Banner */}
         <TouchableOpacity
           style={styles.demoBanner}
           onPress={() => setShowDemoSelector(true)}
@@ -249,7 +275,7 @@ export default function ProfileScreen() {
           <View style={styles.demoBannerContent}>
             <Text style={styles.demoBannerTitle}>Modalità Demo</Text>
             <Text style={styles.demoBannerSubtitle}>
-              Profilo: {currentUser?.displayName} ({currentUser?.role === 'superuser' ? 'Superuser' : currentUser?.role === 'verified' ? 'Verificato' : 'Regular'})
+              Profilo: {currentUser?.displayName} ({currentUser?.role === 'superuser' ? 'Superuser' : currentUser?.role === 'verified' ? 'Verificato' : currentUser?.role === 'club_manager' ? 'Responsabile Società' : 'Regular'})
             </Text>
           </View>
           <IconSymbol
@@ -284,6 +310,11 @@ export default function ProfileScreen() {
                 <Text style={styles.superuserEmoji}>👑</Text>
               </View>
             )}
+            {isClubManager && (
+              <View style={styles.clubManagerBadge}>
+                <Text style={styles.clubManagerEmoji}>🏢</Text>
+              </View>
+            )}
           </View>
           <Text style={styles.name}>{currentUser?.displayName || 'Marco Rossi'}</Text>
           <Text style={styles.location}>{currentUser?.favoriteCity || 'Milano'}, Lombardia</Text>
@@ -295,7 +326,6 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* Roles Info Button */}
         <View style={styles.infoSection}>
           <TouchableOpacity
             style={styles.infoButton}
@@ -312,7 +342,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Superuser Dashboard Button */}
         {isSuperuser && (
           <View style={styles.adminSection}>
             <TouchableOpacity
@@ -331,8 +360,53 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Request Verification Button (for regular users) */}
-        {!isVerified && !isSuperuser && (
+        {isVerified && (
+          <View style={styles.delegateSection}>
+            <TouchableOpacity
+              style={styles.delegateButton}
+              onPress={() => router.push('/delegate/dashboard')}
+            >
+              <Text style={styles.delegateButtonEmoji}>✅</Text>
+              <View style={styles.delegateButtonContent}>
+                <Text style={styles.delegateButtonTitle}>Dashboard Delegato</Text>
+                <Text style={styles.delegateButtonSubtitle}>
+                  Gestisci tornei, squadre e caricamenti massivi
+                </Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron_right"
+                size={24}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {isClubManager && (
+          <View style={styles.clubSection}>
+            <TouchableOpacity
+              style={styles.clubButton}
+              onPress={() => router.push('/club/dashboard')}
+            >
+              <Text style={styles.clubButtonEmoji}>🏢</Text>
+              <View style={styles.clubButtonContent}>
+                <Text style={styles.clubButtonTitle}>Gestione Società</Text>
+                <Text style={styles.clubButtonSubtitle}>
+                  Gestisci squadre, atleti e iscrizioni tornei
+                </Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron_right"
+                size={24}
+                color={colors.secondary}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!isVerified && !isSuperuser && !isClubManager && (
           <View style={styles.verificationSection}>
             <TouchableOpacity
               style={styles.verificationButton}
@@ -409,7 +483,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Organizers Button */}
         <View style={styles.section}>
           <TouchableOpacity
             style={styles.menuButton}
@@ -641,6 +714,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     width: '100%',
+    marginBottom: 16,
   },
   socialButton: {
     flex: 1,
@@ -661,6 +735,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: colors.card,
+  },
+  loginLink: {
+    alignItems: 'center',
+  },
+  loginLinkText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  loginLinkBold: {
+    fontWeight: '800',
+    color: colors.primary,
   },
   header: {
     alignItems: 'center',
@@ -724,6 +810,22 @@ const styles = StyleSheet.create({
   superuserEmoji: {
     fontSize: 18,
   },
+  clubManagerBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.card,
+  },
+  clubManagerEmoji: {
+    fontSize: 18,
+  },
   name: {
     fontSize: 24,
     fontWeight: '800',
@@ -750,7 +852,7 @@ const styles = StyleSheet.create({
   },
   adminSection: {
     paddingHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   adminButton: {
     backgroundColor: '#FFD700',
@@ -770,6 +872,74 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#000',
+  },
+  delegateSection: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  delegateButton: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.calcio,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 2,
+  },
+  delegateButtonEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  delegateButtonContent: {
+    flex: 1,
+  },
+  delegateButtonTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  delegateButtonSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  clubSection: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  clubButton: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.secondary,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 2,
+  },
+  clubButtonEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  clubButtonContent: {
+    flex: 1,
+  },
+  clubButtonTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  clubButtonSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    lineHeight: 18,
   },
   verificationSection: {
     paddingHorizontal: 16,
