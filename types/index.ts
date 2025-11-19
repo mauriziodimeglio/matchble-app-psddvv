@@ -26,6 +26,10 @@ export type VerificationRequestStatus = 'pending' | 'approved' | 'rejected';
 // NEW: Territorial hierarchy types
 export type TerritorialLevel = 'nazionale' | 'regionale' | 'provinciale' | 'comunale' | 'locale';
 
+// Import permission types
+import { PermissionsType, PermissionPreset } from './permissions';
+export type { PermissionsType, PermissionPreset };
+
 export interface Team {
   id: string;
   name: string;
@@ -145,7 +149,7 @@ export interface FirestoreOrganizer {
 }
 
 // ============================================
-// VERIFICATION REQUEST TYPES
+// VERIFICATION REQUEST TYPES - UPDATED WITH PERMISSIONS
 // ============================================
 
 export interface FirestoreVerificationRequest {
@@ -174,11 +178,15 @@ export interface FirestoreVerificationRequest {
   reviewedAt?: Date;
   rejectionReason?: string;
   
+  // NEW: Permission configuration
+  permissionsPreset?: PermissionPreset; // 'base' | 'manager' | 'custom'
+  customPermissions?: PermissionsType; // Only if preset is 'custom'
+  
   createdAt: Date;
 }
 
 // ============================================
-// USER AFFILIATION TYPE - NEW
+// USER AFFILIATION TYPE - UPDATED WITH PERMISSIONS
 // ============================================
 
 export interface UserAffiliation {
@@ -189,6 +197,10 @@ export interface UserAffiliation {
   verifiedBy: string; // superuser userId
   verifiedAt: Date;
   active: boolean;
+  
+  // NEW: Granular permissions for this affiliation
+  permissions?: PermissionsType;
+  permissionsPreset?: PermissionPreset; // Track which preset was used
 }
 
 // ============================================
@@ -407,7 +419,7 @@ export interface FirestoreUser {
   verifiedBy?: string; // superuser userId (deprecated - use affiliations)
   verifiedAt?: Date; // deprecated - use affiliations
   
-  // NEW: Multiple affiliations support
+  // NEW: Multiple affiliations support with permissions
   affiliations: UserAffiliation[];
   
   // DEPRECATED: Single organizer fields (kept for backwards compatibility)

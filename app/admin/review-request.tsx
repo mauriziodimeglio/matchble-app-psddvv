@@ -5,11 +5,17 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
 import { getVerificationRequestById } from '@/data/verificationRequestsMockData';
 import { IconSymbol } from '@/components/IconSymbol';
+import PermissionSelector from '@/components/PermissionSelector';
+import { PermissionPreset, PermissionsType, getPermissionPreset, countEnabledPermissions } from '@/types/permissions';
 
 export default function ReviewRequest() {
   const { id, action } = useLocalSearchParams<{ id: string; action?: string }>();
   const [showRejectModal, setShowRejectModal] = useState(action === 'reject');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState<PermissionPreset>('base');
+  const [customPermissions, setCustomPermissions] = useState<PermissionsType>(
+    getPermissionPreset('custom')!.permissions
+  );
 
   const request = getVerificationRequestById(id);
 
@@ -22,9 +28,16 @@ export default function ReviewRequest() {
   }
 
   const handleApprove = () => {
+    const permissions = selectedPreset === 'custom' 
+      ? customPermissions 
+      : getPermissionPreset(selectedPreset)!.permissions;
+    
+    const permissionsCount = countEnabledPermissions(permissions);
+    const presetName = getPermissionPreset(selectedPreset)!.name;
+
     Alert.alert(
       'Approva Richiesta',
-      `Vuoi approvare la richiesta di ${request.userName}?\n\nL'utente riceverà:\n• Account verificato\n• Ruolo: ${request.organizerRole}\n• Permessi per creare tornei ufficiali`,
+      `Vuoi approvare la richiesta di ${request.userName}?\n\nL'utente riceverà:\n• Account verificato\n• Ruolo: ${request.organizerRole}\n• Preset: ${presetName}\n• ${permissionsCount} permessi attivi`,
       [
         { text: 'Annulla', style: 'cancel' },
         {
@@ -36,12 +49,14 @@ export default function ReviewRequest() {
               role: 'verified',
               organizerId: request.organizerId,
               organizerRole: request.organizerRole,
+              permissionsPreset: selectedPreset,
+              permissions: permissions,
               canCreateOfficialTournaments: true,
             });
             
             Alert.alert(
               '✅ Approvato',
-              'La richiesta è stata approvata. L\'utente ha ricevuto una notifica.',
+              'La richiesta è stata approvata. L\'utente ha ricevuto una notifica con i dettagli dei permessi.',
               [
                 {
                   text: 'OK',
@@ -157,6 +172,20 @@ export default function ReviewRequest() {
               minute: '2-digit'
             })}
           </Text>
+        </View>
+
+        {/* Permission Configuration */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🔐 Configurazione Permessi</Text>
+          <Text style={styles.sectionDescription}>
+            Seleziona i permessi da assegnare a questo delegato
+          </Text>
+          <PermissionSelector
+            selectedPreset={selectedPreset}
+            customPermissions={customPermissions}
+            onPresetChange={setSelectedPreset}
+            onCustomPermissionsChange={setCustomPermissions}
+          />
         </View>
       </ScrollView>
 
@@ -382,6 +411,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  sectionDescription: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.textSecondary,
+    marginBottom: 16,
+    lineHeight: 20,
   },
   footer: {
     position: 'absolute',
