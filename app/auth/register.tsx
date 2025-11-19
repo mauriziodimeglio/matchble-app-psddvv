@@ -54,21 +54,12 @@ export default function RegisterScreen() {
     }
 
     console.log('Registering user:', formData);
-    Alert.alert(
-      '✅ Registrazione Completata',
-      'Il tuo account è stato creato con successo!',
-      [
-        {
-          text: 'OK',
-          onPress: () => router.replace('/(tabs)/(home)')
-        }
-      ]
-    );
+    router.push('/auth/select-role');
   };
 
   const handleSocialLogin = (provider: string) => {
     console.log('Social login with:', provider);
-    Alert.alert('Social Login', `Login con ${provider} in arrivo!`);
+    router.push('/auth/select-role');
   };
 
   return (
@@ -169,7 +160,13 @@ export default function RegisterScreen() {
           </View>
 
           <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerButtonText}>Registrati</Text>
+            <Text style={styles.registerButtonText}>Continua</Text>
+            <IconSymbol
+              ios_icon_name="arrow.right"
+              android_material_icon_name="arrow_forward"
+              size={20}
+              color={colors.card}
+            />
           </TouchableOpacity>
 
           <View style={styles.divider}>
@@ -302,7 +299,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: 8,
   },
   registerButtonText: {

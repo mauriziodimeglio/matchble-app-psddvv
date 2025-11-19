@@ -1,18 +1,20 @@
 
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from 'react';
 import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { sportIcons } from '@/data/mockData';
 import { mockFirestoreUsers } from '@/data/firestoreMockData';
 import AppHeader from '@/components/AppHeader';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 export default function ProfileScreen() {
   const isGuest = false;
   const [showRolesModal, setShowRolesModal] = useState(false);
   const [showDemoSelector, setShowDemoSelector] = useState(false);
   const [selectedDemoUser, setSelectedDemoUser] = useState('user_001');
+  const { language } = useLocalization();
   
   const currentUser = mockFirestoreUsers.find(u => u.uid === selectedDemoUser);
   const isSuperuser = currentUser?.role === 'superuser';
@@ -326,22 +328,6 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        <View style={styles.infoSection}>
-          <TouchableOpacity
-            style={styles.infoButton}
-            onPress={() => setShowRolesModal(true)}
-          >
-            <Text style={styles.infoButtonEmoji}>ℹ️</Text>
-            <Text style={styles.infoButtonText}>Scopri i Ruoli Utente</Text>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron_right"
-              size={24}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
-        </View>
-
         {isSuperuser && (
           <View style={styles.adminSection}>
             <TouchableOpacity
@@ -484,6 +470,29 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Impostazioni</Text>
+          
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => router.push('/settings/language')}
+          >
+            <View style={styles.menuButtonIcon}>
+              <Text style={styles.menuButtonEmoji}>🌍</Text>
+            </View>
+            <View style={styles.menuButtonContent}>
+              <Text style={styles.menuButtonText}>Lingua e Formato</Text>
+              <Text style={styles.menuButtonSubtext}>
+                {language === 'it' ? 'Italiano 🇮🇹' : 'English 🇬🇧'}
+              </Text>
+            </View>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron_right"
+              size={24}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.menuButton}
             onPress={() => router.push('/organizers/')}
@@ -491,7 +500,33 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonIcon}>
               <Text style={styles.menuButtonEmoji}>🏢</Text>
             </View>
-            <Text style={styles.menuButtonText}>Organizzatori Sportivi</Text>
+            <View style={styles.menuButtonContent}>
+              <Text style={styles.menuButtonText}>Organizzatori Sportivi</Text>
+              <Text style={styles.menuButtonSubtext}>
+                Esplora federazioni e organizzazioni
+              </Text>
+            </View>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron_right"
+              size={24}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => setShowRolesModal(true)}
+          >
+            <View style={styles.menuButtonIcon}>
+              <Text style={styles.menuButtonEmoji}>ℹ️</Text>
+            </View>
+            <View style={styles.menuButtonContent}>
+              <Text style={styles.menuButtonText}>Scopri i Ruoli Utente</Text>
+              <Text style={styles.menuButtonSubtext}>
+                Informazioni sui diversi tipi di account
+              </Text>
+            </View>
             <IconSymbol
               ios_icon_name="chevron.right"
               android_material_icon_name="chevron_right"
@@ -547,29 +582,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: colors.textSecondary,
-  },
-  infoSection: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  infoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  infoButtonEmoji: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  infoButtonText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
   },
   modalOverlay: {
     flex: 1,
@@ -1034,6 +1046,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
     elevation: 2,
+    marginBottom: 12,
   },
   menuButtonIcon: {
     width: 48,
@@ -1047,10 +1060,18 @@ const styles = StyleSheet.create({
   menuButtonEmoji: {
     fontSize: 24,
   },
-  menuButtonText: {
+  menuButtonContent: {
     flex: 1,
+  },
+  menuButtonText: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
+    marginBottom: 2,
+  },
+  menuButtonSubtext: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
   },
 });
