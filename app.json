@@ -1,7 +1,8 @@
+
 {
   "expo": {
     "name": "Matchble",
-    "slug": "Matchble",
+    "slug": "matchble",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
@@ -14,14 +15,29 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.matchble.app"
+      "bundleIdentifier": "com.matchble.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Matchble ha bisogno di accedere alle tue foto per caricare immagini delle partite.",
+        "NSCameraUsageDescription": "Matchble ha bisogno di accedere alla fotocamera per scattare foto delle partite.",
+        "NSLocationWhenInUseUsageDescription": "Matchble usa la tua posizione per mostrare partite e tornei vicini a te."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
         "backgroundColor": "#F5F5F5"
       },
-      "package": "com.matchble.app"
+      "package": "com.matchble.app",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -37,11 +53,25 @@
           "image": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
           "imageWidth": 200
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Matchble ha bisogno di accedere alle tue foto per caricare immagini delle partite.",
+          "cameraPermission": "Matchble ha bisogno di accedere alla fotocamera per scattare foto delle partite."
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
     }
-  },
-  "scheme": "Matchble"
+  }
 }
