@@ -23,6 +23,9 @@ export type OrganizerType = 'national' | 'regional' | 'private';
 
 export type VerificationRequestStatus = 'pending' | 'approved' | 'rejected';
 
+// NEW: Territorial hierarchy types
+export type TerritorialLevel = 'nazionale' | 'regionale' | 'provinciale' | 'comunale' | 'locale';
+
 export interface Team {
   id: string;
   name: string;
@@ -96,23 +99,43 @@ export interface UserProfile {
 }
 
 // ============================================
-// ORGANIZER TYPES
+// ORGANIZER TYPES - UPDATED WITH HIERARCHY
 // ============================================
 
 export interface FirestoreOrganizer {
   id: string;
-  name: string;
+  name: string; // "FIPAV Napoli"
   fullName: string;
-  acronym: string;
+  acronym: string; // "FIPAV"
   logo: string;
   color: string;
   description: string;
   sport: Sport;
   type: OrganizerType;
+  
+  // NEW: Gerarchia territoriale
+  parentId?: string; // ID organizzatore parent (FIPAV Napoli → parent: FIPAV Campania)
+  rootId: string; // ID federazione/ente nazionale (sempre FIPAV nazionale)
+  level: TerritorialLevel;
+  
+  // NEW: Territorio
+  territory: {
+    region?: string; // "Campania"
+    province?: string; // "Napoli"
+    city?: string; // "Napoli"
+    code?: string; // Codice ufficiale (es: "NA" per provincia)
+  };
+  
+  // NEW: Gerarchia
+  children?: string[]; // IDs organizzatori figli
+  hierarchyPath: string; // "FIPAV > Campania > Napoli"
+  
+  // Existing fields (kept for backwards compatibility)
   scope: {
     level: 'national' | 'regional';
     region?: string;
   };
+  
   website: string;
   email: string;
   verified: boolean;
@@ -152,6 +175,20 @@ export interface FirestoreVerificationRequest {
   rejectionReason?: string;
   
   createdAt: Date;
+}
+
+// ============================================
+// USER AFFILIATION TYPE - NEW
+// ============================================
+
+export interface UserAffiliation {
+  organizerId: string;
+  organizerName: string;
+  organizerLogo: string;
+  role: string; // "Delegato Provinciale"
+  verifiedBy: string; // superuser userId
+  verifiedAt: Date;
+  active: boolean;
 }
 
 // ============================================
@@ -336,7 +373,7 @@ export interface FirestoreStanding {
 }
 
 /**
- * User document structure for Firestore
+ * User document structure for Firestore - UPDATED WITH MULTIPLE AFFILIATIONS
  * Collection: users
  * Document ID: Firebase Auth UID
  */
@@ -367,10 +404,15 @@ export interface FirestoreUser {
   
   // User role and verification
   role: UserRole;
-  verifiedBy?: string; // superuser userId
-  verifiedAt?: Date;
-  organizerId?: string; // ID organizzatore rappresentato
-  organizerRole?: string; // "Delegato FIGC Lombardia"
+  verifiedBy?: string; // superuser userId (deprecated - use affiliations)
+  verifiedAt?: Date; // deprecated - use affiliations
+  
+  // NEW: Multiple affiliations support
+  affiliations: UserAffiliation[];
+  
+  // DEPRECATED: Single organizer fields (kept for backwards compatibility)
+  organizerId?: string;
+  organizerRole?: string;
   canCreateOfficialTournaments: boolean;
   
   // Metadata

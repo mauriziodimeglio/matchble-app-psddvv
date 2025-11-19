@@ -7,7 +7,8 @@ import {
   FirestoreUser,
   FirestoreNotification,
   Sport,
-  FormResult
+  FormResult,
+  UserAffiliation
 } from '@/types';
 
 /**
@@ -361,7 +362,7 @@ export const mockFirestoreStandings: FirestoreStanding[] = [
 ];
 
 // ============================================
-// USERS COLLECTION
+// USERS COLLECTION - UPDATED WITH MULTIPLE AFFILIATIONS
 // ============================================
 export const mockFirestoreUsers: FirestoreUser[] = [
   {
@@ -381,6 +382,28 @@ export const mockFirestoreUsers: FirestoreUser[] = [
     verifiedMatches: 14,
     rejectedMatches: 1,
     role: 'verified',
+    // NEW: Multiple affiliations
+    affiliations: [
+      {
+        organizerId: 'org_figc_lombardia',
+        organizerName: 'FIGC Lombardia',
+        organizerLogo: 'https://images.unsplash.com/photo-1614632537423-1e6c2e7e0aae?w=200',
+        role: 'Delegato Regionale',
+        verifiedBy: 'user_superuser_001',
+        verifiedAt: new Date('2024-11-15T10:00:00Z'),
+        active: true,
+      },
+      {
+        organizerId: 'org_csi_milano',
+        organizerName: 'CSI Milano',
+        organizerLogo: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=200',
+        role: 'Responsabile Tornei',
+        verifiedBy: 'user_superuser_001',
+        verifiedAt: new Date('2024-12-01T10:00:00Z'),
+        active: true,
+      },
+    ],
+    // Deprecated fields (kept for backwards compatibility)
     verifiedBy: 'user_superuser_001',
     verifiedAt: new Date('2024-11-15T10:00:00Z'),
     organizerId: 'org_figc_lombardia',
@@ -406,6 +429,19 @@ export const mockFirestoreUsers: FirestoreUser[] = [
     verifiedMatches: 21,
     rejectedMatches: 1,
     role: 'verified',
+    // NEW: Multiple affiliations
+    affiliations: [
+      {
+        organizerId: 'org_fip_lombardia',
+        organizerName: 'FIP Lombardia',
+        organizerLogo: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=200',
+        role: 'Responsabile Tornei',
+        verifiedBy: 'user_superuser_001',
+        verifiedAt: new Date('2024-10-20T10:00:00Z'),
+        active: true,
+      },
+    ],
+    // Deprecated fields
     verifiedBy: 'user_superuser_001',
     verifiedAt: new Date('2024-10-20T10:00:00Z'),
     organizerId: 'org_fip_lombardia',
@@ -431,9 +467,61 @@ export const mockFirestoreUsers: FirestoreUser[] = [
     verifiedMatches: 6,
     rejectedMatches: 2,
     role: 'regular',
+    affiliations: [], // No affiliations
     canCreateOfficialTournaments: false,
     createdAt: new Date('2024-11-20T10:00:00Z'),
     lastActive: new Date('2025-01-14T22:30:00Z')
+  },
+  {
+    uid: 'user_004',
+    email: 'anna.ferrari@email.com',
+    displayName: 'Anna Ferrari',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
+    favoriteSports: ['volley', 'calcio'],
+    favoriteCity: 'Napoli',
+    favoriteTeams: [],
+    matchesSubmitted: 12,
+    tournamentsCreated: 1,
+    tournamentsJoined: 4,
+    notificationsEnabled: true,
+    notificationToken: 'fcm_token_ghi789',
+    trustScore: 88,
+    verifiedMatches: 11,
+    rejectedMatches: 1,
+    role: 'verified',
+    // NEW: Multiple affiliations across different sports and levels
+    affiliations: [
+      {
+        organizerId: 'org_fipav_napoli',
+        organizerName: 'FIPAV Napoli',
+        organizerLogo: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=200',
+        role: 'Delegato Provinciale',
+        verifiedBy: 'user_superuser_001',
+        verifiedAt: new Date('2024-11-01T10:00:00Z'),
+        active: true,
+      },
+      {
+        organizerId: 'org_figc_napoli',
+        organizerName: 'FIGC Napoli',
+        organizerLogo: 'https://images.unsplash.com/photo-1614632537423-1e6c2e7e0aae?w=200',
+        role: 'Responsabile Comunicazione',
+        verifiedBy: 'user_superuser_001',
+        verifiedAt: new Date('2024-11-15T10:00:00Z'),
+        active: true,
+      },
+      {
+        organizerId: 'org_csi_napoli',
+        organizerName: 'CSI Napoli',
+        organizerLogo: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=200',
+        role: 'Coordinatore Tornei',
+        verifiedBy: 'user_superuser_001',
+        verifiedAt: new Date('2024-12-01T10:00:00Z'),
+        active: true,
+      },
+    ],
+    canCreateOfficialTournaments: true,
+    createdAt: new Date('2024-10-15T10:00:00Z'),
+    lastActive: new Date('2025-01-15T19:00:00Z')
   },
   {
     uid: 'user_superuser_001',
@@ -452,6 +540,7 @@ export const mockFirestoreUsers: FirestoreUser[] = [
     verifiedMatches: 0,
     rejectedMatches: 0,
     role: 'superuser',
+    affiliations: [], // Superuser doesn't need affiliations
     canCreateOfficialTournaments: true,
     createdAt: new Date('2024-01-01T00:00:00Z'),
     lastActive: new Date('2025-01-15T20:00:00Z')
