@@ -1,12 +1,20 @@
 
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { sportIcons } from '@/data/mockData';
+import { mockFirestoreUsers } from '@/data/firestoreMockData';
 
 export default function ProfileScreen() {
-  const isGuest = true;
+  const isGuest = false;
+  
+  // For demo purposes, use the first user (Marco Rossi - verified)
+  // Change to user_superuser_001 to test superuser features
+  const currentUser = mockFirestoreUsers.find(u => u.uid === 'user_001');
+  const isSuperuser = currentUser?.role === 'superuser';
+  const isVerified = currentUser?.role === 'verified';
 
   if (isGuest) {
     return (
@@ -26,7 +34,7 @@ export default function ProfileScreen() {
             <View style={styles.featureItem}>
               <IconSymbol
                 ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check-circle"
+                android_material_icon_name="check_circle"
                 size={24}
                 color={colors.primary}
               />
@@ -35,7 +43,7 @@ export default function ProfileScreen() {
             <View style={styles.featureItem}>
               <IconSymbol
                 ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check-circle"
+                android_material_icon_name="check_circle"
                 size={24}
                 color={colors.primary}
               />
@@ -44,7 +52,7 @@ export default function ProfileScreen() {
             <View style={styles.featureItem}>
               <IconSymbol
                 ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check-circle"
+                android_material_icon_name="check_circle"
                 size={24}
                 color={colors.primary}
               />
@@ -53,7 +61,7 @@ export default function ProfileScreen() {
             <View style={styles.featureItem}>
               <IconSymbol
                 ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check-circle"
+                android_material_icon_name="check_circle"
                 size={24}
                 color={colors.primary}
               />
@@ -98,58 +106,121 @@ export default function ProfileScreen() {
       >
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <IconSymbol
-                ios_icon_name="person.fill"
-                android_material_icon_name="person"
-                size={48}
-                color={colors.card}
-              />
-            </View>
+            {currentUser?.photoURL ? (
+              <Image source={{ uri: currentUser.photoURL }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatar}>
+                <IconSymbol
+                  ios_icon_name="person.fill"
+                  android_material_icon_name="person"
+                  size={48}
+                  color={colors.card}
+                />
+              </View>
+            )}
+            {isVerified && (
+              <View style={styles.verifiedBadge}>
+                <Text style={styles.verifiedEmoji}>✅</Text>
+              </View>
+            )}
+            {isSuperuser && (
+              <View style={styles.superuserBadge}>
+                <Text style={styles.superuserEmoji}>👑</Text>
+              </View>
+            )}
           </View>
-          <Text style={styles.name}>Marco Rossi</Text>
-          <Text style={styles.location}>Milano, Lombardia</Text>
+          <Text style={styles.name}>{currentUser?.displayName || 'Marco Rossi'}</Text>
+          <Text style={styles.location}>{currentUser?.favoriteCity || 'Milano'}, Lombardia</Text>
+          
+          {isVerified && currentUser?.organizerRole && (
+            <View style={styles.roleBadge}>
+              <Text style={styles.roleText}>{currentUser.organizerRole}</Text>
+            </View>
+          )}
         </View>
+
+        {/* Superuser Dashboard Button */}
+        {isSuperuser && (
+          <View style={styles.adminSection}>
+            <TouchableOpacity
+              style={styles.adminButton}
+              onPress={() => router.push('/admin/dashboard')}
+            >
+              <Text style={styles.adminButtonEmoji}>👑</Text>
+              <Text style={styles.adminButtonText}>Dashboard Admin</Text>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron_right"
+                size={24}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Request Verification Button (for regular users) */}
+        {!isVerified && !isSuperuser && (
+          <View style={styles.verificationSection}>
+            <TouchableOpacity
+              style={styles.verificationButton}
+              onPress={() => router.push('/profile/request-verification')}
+            >
+              <Text style={styles.verificationButtonEmoji}>✅</Text>
+              <View style={styles.verificationButtonContent}>
+                <Text style={styles.verificationButtonTitle}>Richiedi Account Verificato</Text>
+                <Text style={styles.verificationButtonSubtitle}>
+                  Crea tornei ufficiali e gestisci organizzazioni
+                </Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron_right"
+                size={24}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <IconSymbol
               ios_icon_name="gamecontroller.fill"
-              android_material_icon_name="sports-esports"
+              android_material_icon_name="sports_esports"
               size={32}
               color={colors.primary}
             />
-            <Text style={styles.statValue}>42</Text>
+            <Text style={styles.statValue}>{currentUser?.matchesSubmitted || 42}</Text>
             <Text style={styles.statLabel}>Partite</Text>
           </View>
 
           <View style={styles.statCard}>
             <IconSymbol
               ios_icon_name="trophy.fill"
-              android_material_icon_name="emoji-events"
+              android_material_icon_name="emoji_events"
               size={32}
               color={colors.secondary}
             />
-            <Text style={styles.statValue}>28</Text>
-            <Text style={styles.statLabel}>Vittorie</Text>
+            <Text style={styles.statValue}>{currentUser?.tournamentsCreated || 2}</Text>
+            <Text style={styles.statLabel}>Tornei</Text>
           </View>
 
           <View style={styles.statCard}>
             <IconSymbol
               ios_icon_name="chart.bar.fill"
-              android_material_icon_name="bar-chart"
+              android_material_icon_name="bar_chart"
               size={32}
               color={colors.accent}
             />
-            <Text style={styles.statValue}>67%</Text>
-            <Text style={styles.statLabel}>Win Rate</Text>
+            <Text style={styles.statValue}>{currentUser?.trustScore || 92}%</Text>
+            <Text style={styles.statLabel}>Trust Score</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>I Miei Sport</Text>
           <View style={styles.sportsContainer}>
-            {(['calcio', 'basket'] as const).map((sport, index) => {
+            {(currentUser?.favoriteSports || ['calcio', 'basket']).map((sport, index) => {
               const sportData = sportIcons[sport];
               return (
                 <React.Fragment key={index}>
@@ -163,6 +234,25 @@ export default function ProfileScreen() {
               );
             })}
           </View>
+        </View>
+
+        {/* Organizers Button */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => router.push('/organizers/')}
+          >
+            <View style={styles.menuButtonIcon}>
+              <Text style={styles.menuButtonEmoji}>🏢</Text>
+            </View>
+            <Text style={styles.menuButtonText}>Organizzatori Sportivi</Text>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron_right"
+              size={24}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -254,10 +344,11 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     paddingHorizontal: 24,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   avatarContainer: {
     marginBottom: 16,
+    position: 'relative',
   },
   avatar: {
     width: 120,
@@ -271,6 +362,47 @@ const styles = StyleSheet.create({
     boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
     elevation: 4,
   },
+  avatarImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: colors.card,
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+    elevation: 4,
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.calcio,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.card,
+  },
+  verifiedEmoji: {
+    fontSize: 18,
+  },
+  superuserBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFD700',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.card,
+  },
+  superuserEmoji: {
+    fontSize: 18,
+  },
   name: {
     fontSize: 24,
     fontWeight: '800',
@@ -281,6 +413,76 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     fontWeight: '500',
+    marginBottom: 8,
+  },
+  roleBadge: {
+    backgroundColor: colors.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginTop: 8,
+  },
+  roleText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  adminSection: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  adminButton: {
+    backgroundColor: '#FFD700',
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    boxShadow: '0px 4px 12px rgba(255, 215, 0, 0.3)',
+    elevation: 4,
+  },
+  adminButtonEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  adminButtonText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000',
+  },
+  verificationSection: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  verificationButton: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.primary,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 2,
+  },
+  verificationButtonEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  verificationButtonContent: {
+    flex: 1,
+  },
+  verificationButtonTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  verificationButtonSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    lineHeight: 18,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -332,5 +534,32 @@ const styles = StyleSheet.create({
   },
   sportBadgeEmoji: {
     fontSize: 40,
+  },
+  menuButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    elevation: 2,
+  },
+  menuButtonIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  menuButtonEmoji: {
+    fontSize: 24,
+  },
+  menuButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
   },
 });

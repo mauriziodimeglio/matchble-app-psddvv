@@ -1,3 +1,4 @@
+
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
@@ -87,6 +88,19 @@ export default function RootLayout() {
             <Stack>
               {/* Main app with tabs */}
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+              {/* Admin routes */}
+              <Stack.Screen name="admin" options={{ headerShown: false }} />
+
+              {/* Profile routes */}
+              <Stack.Screen name="profile" options={{ headerShown: false }} />
+
+              {/* Organizers */}
+              <Stack.Screen name="organizers" options={{ headerShown: false }} />
+
+              {/* Match and Tournament Details */}
+              <Stack.Screen name="match-detail" options={{ headerShown: false }} />
+              <Stack.Screen name="tournament-detail" options={{ headerShown: false }} />
 
               {/* Modal Demo Screens */}
               <Stack.Screen

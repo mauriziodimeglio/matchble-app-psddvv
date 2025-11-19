@@ -1,5 +1,6 @@
 
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Sport } from '@/types';
 
 export const colors = {
   background: '#F5F5F5',
@@ -26,6 +27,13 @@ export const colors = {
   gold: '#FFD700',
   silver: '#C0C0C0',
   bronze: '#CD7F32',
+};
+
+export const sportLabels: Record<Sport, string> = {
+  calcio: 'Calcio',
+  basket: 'Basket',
+  volley: 'Volley',
+  padel: 'Padel',
 };
 
 export const buttonStyles = StyleSheet.create({

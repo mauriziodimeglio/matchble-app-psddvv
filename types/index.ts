@@ -7,7 +7,7 @@ export type TournamentStatus = 'upcoming' | 'ongoing' | 'finished';
 
 export type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
-export type NotificationType = 'match_result' | 'tournament_start' | 'tournament_update' | 'team_invite';
+export type NotificationType = 'match_result' | 'tournament_start' | 'tournament_update' | 'team_invite' | 'verification_approved' | 'verification_rejected';
 
 export type ReferenceType = 'match' | 'tournament' | 'team';
 
@@ -20,6 +20,8 @@ export type FormResult = 'W' | 'L' | 'D';
 export type UserRole = 'regular' | 'verified' | 'superuser';
 
 export type OrganizerType = 'national' | 'regional' | 'private';
+
+export type VerificationRequestStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Team {
   id: string;
@@ -116,6 +118,39 @@ export interface FirestoreOrganizer {
   verified: boolean;
   official: boolean;
   totalTournaments: number;
+  createdAt: Date;
+}
+
+// ============================================
+// VERIFICATION REQUEST TYPES
+// ============================================
+
+export interface FirestoreVerificationRequest {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  userPhotoURL: string | null;
+  organizerId: string;
+  organizerName: string;
+  organizerLogo: string;
+  organizerRole: string; // "Delegato Regionale"
+  
+  // Documenti
+  documents: {
+    idCard: string; // URL documento identità
+    delegationLetter: string; // URL lettera delega
+  };
+  
+  // Motivazione
+  motivation: string; // Testo libero
+  
+  // Status
+  status: VerificationRequestStatus;
+  reviewedBy?: string; // superuser userId
+  reviewedAt?: Date;
+  rejectionReason?: string;
+  
   createdAt: Date;
 }
 
