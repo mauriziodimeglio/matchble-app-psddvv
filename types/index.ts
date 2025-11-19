@@ -17,6 +17,10 @@ export type TournamentLevel = 'beginner' | 'intermediate' | 'advanced' | 'open';
 
 export type FormResult = 'W' | 'L' | 'D';
 
+export type UserRole = 'regular' | 'verified' | 'superuser';
+
+export type OrganizerType = 'national' | 'regional' | 'private';
+
 export interface Team {
   id: string;
   name: string;
@@ -87,6 +91,32 @@ export interface UserProfile {
     wins: number;
     losses: number;
   };
+}
+
+// ============================================
+// ORGANIZER TYPES
+// ============================================
+
+export interface FirestoreOrganizer {
+  id: string;
+  name: string;
+  fullName: string;
+  acronym: string;
+  logo: string;
+  color: string;
+  description: string;
+  sport: Sport;
+  type: OrganizerType;
+  scope: {
+    level: 'national' | 'regional';
+    region?: string;
+  };
+  website: string;
+  email: string;
+  verified: boolean;
+  official: boolean;
+  totalTournaments: number;
+  createdAt: Date;
 }
 
 // ============================================
@@ -180,9 +210,19 @@ export interface FirestoreTournament {
   coverImage: string;
   
   // Organizer
-  organizerId: string; // userId
+  organizerId: string; // userId or organizer id
   organizerName: string;
   organizerContact: string;
+  organizerLogo?: string;
+  
+  // Official tournament fields
+  isOfficial: boolean;
+  championshipInfo?: {
+    season: string;
+    division: string;
+    group?: string;
+  };
+  verifiedBy?: string;
   
   // Metadata
   createdAt: Date;
@@ -289,6 +329,14 @@ export interface FirestoreUser {
   trustScore: number; // 0-100
   verifiedMatches: number;
   rejectedMatches: number;
+  
+  // User role and verification
+  role: UserRole;
+  verifiedBy?: string; // superuser userId
+  verifiedAt?: Date;
+  organizerId?: string; // ID organizzatore rappresentato
+  organizerRole?: string; // "Delegato FIGC Lombardia"
+  canCreateOfficialTournaments: boolean;
   
   // Metadata
   createdAt: Date;
