@@ -292,6 +292,54 @@ export function createTeamInviteNotification(
 }
 
 /**
+ * Create a verification approved notification
+ * @param userId - The user ID to send the notification to
+ * @param organizerName - The name of the organizer the user was verified for
+ * @returns A notification object without ID (to be assigned by Firestore)
+ */
+export function createVerificationApprovedNotification(
+  userId: string,
+  organizerName: string
+): Omit<FirestoreNotification, 'id'> {
+  return {
+    userId,
+    type: 'verification_approved',
+    title: 'Verifica Approvata',
+    body: `La tua richiesta di verifica per ${organizerName} è stata approvata! Ora puoi creare tornei ufficiali.`,
+    icon: '✅',
+    referenceId: userId,
+    referenceType: 'team', // Using 'team' as a generic reference type
+    read: false,
+    readAt: null,
+    createdAt: new Date()
+  };
+}
+
+/**
+ * Create a verification rejected notification
+ * @param userId - The user ID to send the notification to
+ * @param reason - The reason for rejection
+ * @returns A notification object without ID (to be assigned by Firestore)
+ */
+export function createVerificationRejectedNotification(
+  userId: string,
+  reason: string
+): Omit<FirestoreNotification, 'id'> {
+  return {
+    userId,
+    type: 'verification_rejected',
+    title: 'Verifica Rifiutata',
+    body: `La tua richiesta di verifica è stata rifiutata. Motivo: ${reason}`,
+    icon: '❌',
+    referenceId: userId,
+    referenceType: 'team', // Using 'team' as a generic reference type
+    read: false,
+    readAt: null,
+    createdAt: new Date()
+  };
+}
+
+/**
  * Mark notification as read
  */
 export function markNotificationAsRead(notification: FirestoreNotification): FirestoreNotification {
