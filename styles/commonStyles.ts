@@ -27,6 +27,24 @@ export const colors = {
   gold: '#FFD700',
   silver: '#C0C0C0',
   bronze: '#CD7F32',
+  
+  // UI Enhancement colors
+  success: '#4CAF50',
+  warning: '#FF9800',
+  error: '#F44336',
+  info: '#2196F3',
+  
+  // Neutral shades
+  gray50: '#FAFAFA',
+  gray100: '#F5F5F5',
+  gray200: '#EEEEEE',
+  gray300: '#E0E0E0',
+  gray400: '#BDBDBD',
+  gray500: '#9E9E9E',
+  gray600: '#757575',
+  gray700: '#616161',
+  gray800: '#424242',
+  gray900: '#212121',
 };
 
 export const sportLabels: Record<Sport, string> = {
@@ -36,32 +54,88 @@ export const sportLabels: Record<Sport, string> = {
   padel: 'Padel',
 };
 
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+};
+
+export const borderRadius = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  full: 9999,
+};
+
+export const shadows = {
+  sm: {
+    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.08)',
+    elevation: 1,
+  },
+  md: {
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 2,
+  },
+  lg: {
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.12)',
+    elevation: 4,
+  },
+  xl: {
+    boxShadow: '0px 6px 16px rgba(0, 0, 0, 0.15)',
+    elevation: 6,
+  },
+};
+
 export const buttonStyles = StyleSheet.create({
   primary: {
     backgroundColor: colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.md,
   },
   secondary: {
     backgroundColor: colors.secondary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.md,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   fab: {
     backgroundColor: colors.primary,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0px 4px 12px rgba(255, 87, 34, 0.4)',
-    elevation: 8,
+    ...shadows.lg,
+  },
+  text: {
+    backgroundColor: 'transparent',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
@@ -86,22 +160,24 @@ export const commonStyles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '900',
     textAlign: 'center',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: spacing.md,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
+    letterSpacing: -0.3,
   },
   text: {
     fontSize: 16,
     fontWeight: '500',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     lineHeight: 24,
   },
   textSecondary: {
@@ -112,26 +188,24 @@ export const commonStyles = StyleSheet.create({
   },
   section: {
     width: '100%',
-    paddingHorizontal: 16,
-    marginBottom: 24,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xl,
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
-    marginVertical: 8,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginVertical: spacing.sm,
     width: '100%',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 3,
+    ...shadows.md,
   },
   cardLarge: {
     backgroundColor: colors.card,
-    borderRadius: 20,
-    padding: 20,
-    marginVertical: 12,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    marginVertical: spacing.md,
     width: '100%',
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.12)',
-    elevation: 4,
+    ...shadows.lg,
   },
   icon: {
     width: 80,
@@ -153,5 +227,16 @@ export const commonStyles = StyleSheet.create({
   center: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.gray300,
+    marginVertical: spacing.md,
+  },
+  badge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    alignSelf: 'flex-start',
   },
 });

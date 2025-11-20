@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Match } from '@/types';
 import { sportIcons } from '@/data/mockData';
-import { colors } from '@/styles/commonStyles';
+import { colors, spacing, borderRadius, shadows } from '@/styles/commonStyles';
 import { IconSymbol } from './IconSymbol';
 
 interface MatchCardProps {
@@ -12,7 +12,7 @@ interface MatchCardProps {
   isLarge?: boolean;
 }
 
-export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
+export function MatchCard({ match, isLarge = false }: MatchCardProps) {
   const router = useRouter();
   const sportData = sportIcons[match.sport];
 
@@ -28,17 +28,19 @@ export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
   if (isLarge && match.status === 'live') {
     return (
       <TouchableOpacity 
-        style={styles.liveCard}
+        style={[styles.liveCard, { borderColor: sportData.color }]}
         onPress={handlePress}
         activeOpacity={0.9}
       >
-        <View style={styles.liveBadge}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>LIVE</Text>
-        </View>
-        
-        <View style={styles.sportIconCorner}>
-          <Text style={styles.sportEmoji}>{sportData.emoji}</Text>
+        <View style={styles.liveHeader}>
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
+          
+          <View style={[styles.sportBadge, { backgroundColor: `${sportData.color}20` }]}>
+            <Text style={styles.sportEmoji}>{sportData.emoji}</Text>
+          </View>
         </View>
 
         <View style={styles.liveScoreContainer}>
@@ -46,7 +48,9 @@ export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
             <Text style={styles.teamNameLarge} numberOfLines={1}>
               {match.homeTeam.name}
             </Text>
-            <Text style={styles.scoreLarge}>{match.homeTeam.score ?? 0}</Text>
+            <Text style={[styles.scoreLarge, { color: sportData.color }]}>
+              {match.homeTeam.score ?? 0}
+            </Text>
           </View>
           
           <Text style={styles.scoreSeparator}>-</Text>
@@ -55,15 +59,17 @@ export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
             <Text style={styles.teamNameLarge} numberOfLines={1}>
               {match.awayTeam.name}
             </Text>
-            <Text style={styles.scoreLarge}>{match.awayTeam.score ?? 0}</Text>
+            <Text style={[styles.scoreLarge, { color: sportData.color }]}>
+              {match.awayTeam.score ?? 0}
+            </Text>
           </View>
         </View>
 
         <View style={styles.liveInfo}>
           <IconSymbol 
             ios_icon_name="location.fill"
-            android_material_icon_name="location-on"
-            size={16}
+            android_material_icon_name="location_on"
+            size={14}
             color={colors.textSecondary}
           />
           <Text style={styles.infoText}>{match.location.city}</Text>
@@ -79,7 +85,9 @@ export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <Text style={styles.sportEmojiSmall}>{sportData.emoji}</Text>
+        <View style={[styles.sportBadgeSmall, { backgroundColor: `${sportData.color}20` }]}>
+          <Text style={styles.sportEmojiSmall}>{sportData.emoji}</Text>
+        </View>
         {match.status === 'live' && (
           <View style={styles.liveBadgeSmall}>
             <View style={styles.liveDotSmall} />
@@ -93,7 +101,9 @@ export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
           <Text style={styles.teamName} numberOfLines={1}>
             {match.homeTeam.name}
           </Text>
-          <Text style={styles.score}>{match.homeTeam.score ?? '-'}</Text>
+          <Text style={[styles.score, { color: sportData.color }]}>
+            {match.homeTeam.score ?? '-'}
+          </Text>
         </View>
         
         <Text style={styles.vs}>vs</Text>
@@ -102,13 +112,23 @@ export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
           <Text style={styles.teamName} numberOfLines={1}>
             {match.awayTeam.name}
           </Text>
-          <Text style={styles.score}>{match.awayTeam.score ?? '-'}</Text>
+          <Text style={[styles.score, { color: sportData.color }]}>
+            {match.awayTeam.score ?? '-'}
+          </Text>
         </View>
       </View>
 
-      <Text style={styles.date}>
-        {formatDate(match.datetime.scheduled)}
-      </Text>
+      <View style={styles.cardFooter}>
+        <IconSymbol 
+          ios_icon_name="calendar"
+          android_material_icon_name="event"
+          size={12}
+          color={colors.textSecondary}
+        />
+        <Text style={styles.date}>
+          {formatDate(match.datetime.scheduled)}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -116,154 +136,169 @@ export default function MatchCard({ match, isLarge = false }: MatchCardProps) {
 const styles = StyleSheet.create({
   liveCard: {
     backgroundColor: colors.card,
-    borderRadius: 20,
-    padding: 24,
-    marginHorizontal: 16,
-    marginVertical: 12,
-    boxShadow: '0px 4px 16px rgba(244, 67, 54, 0.2)',
-    elevation: 6,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.md,
+    ...shadows.lg,
     borderWidth: 2,
-    borderColor: colors.live,
+  },
+  liveHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.live,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: colors.card,
-    marginRight: 6,
+    marginRight: spacing.xs,
   },
   liveText: {
     color: colors.card,
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
-  sportIconCorner: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
+  sportBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sportEmoji: {
-    fontSize: 32,
+    fontSize: 24,
   },
   liveScoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    marginVertical: 24,
+    marginBottom: spacing.lg,
   },
   teamContainer: {
     alignItems: 'center',
     flex: 1,
   },
   teamNameLarge: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   scoreLarge: {
-    fontSize: 72,
+    fontSize: 56,
     fontWeight: '900',
-    color: colors.primary,
+    lineHeight: 56,
   },
   scoreSeparator: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: '700',
     color: colors.textSecondary,
-    marginHorizontal: 16,
+    marginHorizontal: spacing.md,
   },
   liveInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: spacing.xs,
   },
   infoText: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    elevation: 2,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    ...shadows.sm,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
+  },
+  sportBadgeSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sportEmojiSmall: {
-    fontSize: 24,
+    fontSize: 18,
   },
   liveBadgeSmall: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.live,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   liveDotSmall: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
     backgroundColor: colors.card,
-    marginRight: 4,
+    marginRight: spacing.xs,
   },
   liveTextSmall: {
     color: colors.card,
     fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontWeight: '900',
+    letterSpacing: 0.3,
   },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   team: {
     flex: 1,
     alignItems: 'center',
   },
   teamName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
     textAlign: 'center',
   },
   score: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.primary,
+    fontSize: 28,
+    fontWeight: '900',
+    lineHeight: 28,
   },
   vs: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.textSecondary,
-    marginHorizontal: 8,
+    marginHorizontal: spacing.sm,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
   },
   date: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textSecondary,
-    textAlign: 'center',
     fontWeight: '500',
   },
 });

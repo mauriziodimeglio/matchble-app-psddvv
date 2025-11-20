@@ -3,14 +3,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Sport } from '@/types';
 import { sportIcons, sportLabels } from '@/data/mockData';
-import { colors } from '@/styles/commonStyles';
+import { colors, spacing, borderRadius, shadows } from '@/styles/commonStyles';
 
 interface SportFilterProps {
-  selectedSport: Sport | null;
-  onSelectSport: (sport: Sport | null) => void;
+  selectedSport: Sport | 'all';
+  onSelectSport: (sport: Sport | 'all') => void;
 }
 
-export default function SportFilter({ selectedSport, onSelectSport }: SportFilterProps) {
+export function SportFilter({ selectedSport, onSelectSport }: SportFilterProps) {
   const sports: Sport[] = ['calcio', 'basket', 'volley', 'padel'];
 
   return (
@@ -26,17 +26,17 @@ export default function SportFilter({ selectedSport, onSelectSport }: SportFilte
                 styles.sportButton,
                 isSelected && { 
                   borderColor: sportData.color,
-                  borderWidth: 4,
+                  borderWidth: 3,
                   backgroundColor: `${sportData.color}15`,
                 },
               ]}
-              onPress={() => onSelectSport(isSelected ? null : sport)}
+              onPress={() => onSelectSport(isSelected ? 'all' : sport)}
               activeOpacity={0.7}
             >
               <Text style={styles.emoji}>{sportData.emoji}</Text>
               <Text style={[
                 styles.label,
-                isSelected && { color: sportData.color, fontWeight: '700' }
+                isSelected && { color: sportData.color, fontWeight: '800' }
               ]}>
                 {sportLabels[sport]}
               </Text>
@@ -52,32 +52,25 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    elevation: 2,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   sportButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 80,
-    height: 80,
-    borderRadius: 16,
+    width: 72,
+    height: 72,
+    borderRadius: borderRadius.lg,
     backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: colors.gray300,
   },
   emoji: {
-    fontSize: 36,
-    marginBottom: 4,
+    fontSize: 32,
+    marginBottom: spacing.xs,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.text,
   },

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { colors, spacing, borderRadius, shadows } from '@/styles/commonStyles';
 import { Sport, Match, MatchStatus } from '@/types';
 import { mockMatches } from '@/data/mockData';
 import { SportFilter } from '@/components/SportFilter';
@@ -32,47 +32,48 @@ export default function HomeScreen() {
     {
       id: 'guest',
       emoji: '👀',
-      title: 'Utente Ospite',
-      description: 'Visualizza risultati, inserisci partite, aggiungi foto e commenti',
-      color: '#9E9E9E',
-      features: ['Visualizza risultati', 'Inserisci partite', 'Aggiungi foto', 'Commenti'],
+      title: 'Ospite',
+      description: 'Visualizza risultati e inserisci partite',
+      color: colors.gray500,
+      features: ['Visualizza risultati', 'Inserisci partite', 'Aggiungi foto'],
     },
     {
       id: 'regular',
       emoji: '⚽',
-      title: 'Utente Registrato',
-      description: 'Crea profilo atleta, video live, messaggistica, tornei non ufficiali',
+      title: 'Registrato',
+      description: 'Profilo atleta e tornei personali',
       color: colors.primary,
-      features: ['Profilo atleta', 'Video live', 'Messaggi', 'Tornei'],
+      features: ['Profilo atleta', 'Video live', 'Messaggi'],
     },
     {
       id: 'delegate',
       emoji: '✅',
-      title: 'Delegato Verificato',
-      description: 'Tornei ufficiali, caricamento massivo, gestione risultati',
+      title: 'Delegato',
+      description: 'Tornei ufficiali e gestione completa',
       color: colors.calcio,
-      features: ['Tornei ufficiali', 'Upload massivo', 'Verifica risultati', 'Analytics'],
+      features: ['Tornei ufficiali', 'Upload massivo', 'Analytics'],
     },
     {
       id: 'club_manager',
       emoji: '🏢',
-      title: 'Manager Società',
-      description: 'Gestione completa società, atleti, squadre, planning attività',
+      title: 'Manager',
+      description: 'Gestione società e squadre',
       color: colors.basket,
-      features: ['Gestione società', 'Atleti', 'Planning', 'Impianti'],
+      features: ['Gestione società', 'Atleti', 'Planning'],
     },
     {
       id: 'superuser',
       emoji: '👑',
-      title: 'Superuser',
-      description: 'Controllo totale sistema, approvazioni, permessi, admin panel',
-      color: '#FFD700',
-      features: ['Admin panel', 'Approvazioni', 'Permessi', 'Sistema'],
+      title: 'Admin',
+      description: 'Controllo totale sistema',
+      color: colors.gold,
+      features: ['Admin panel', 'Approvazioni', 'Sistema'],
     },
   ];
 
   return (
     <View style={styles.container}>
+      {/* Compact Header */}
       <View style={styles.header}>
         <View style={styles.logoSection}>
           <Image
@@ -93,7 +94,7 @@ export default function HomeScreen() {
             <IconSymbol
               ios_icon_name="person.3.fill"
               android_material_icon_name="groups"
-              size={24}
+              size={22}
               color={colors.primary}
             />
           </TouchableOpacity>
@@ -104,7 +105,7 @@ export default function HomeScreen() {
             <IconSymbol
               ios_icon_name="message.fill"
               android_material_icon_name="message"
-              size={24}
+              size={22}
               color={colors.primary}
             />
           </TouchableOpacity>
@@ -115,23 +116,22 @@ export default function HomeScreen() {
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
       >
+        {/* Compact User Types Section */}
         {showUserTypes && (
           <View style={styles.userTypesSection}>
             <View style={styles.userTypesHeader}>
               <Text style={styles.userTypesTitle}>🎯 Scegli il Tuo Ruolo</Text>
-              <TouchableOpacity onPress={() => setShowUserTypes(false)}>
+              <TouchableOpacity onPress={() => setShowUserTypes(false)} style={styles.closeButton}>
                 <IconSymbol
                   ios_icon_name="xmark.circle.fill"
                   android_material_icon_name="cancel"
-                  size={24}
+                  size={20}
                   color={colors.textSecondary}
                 />
               </TouchableOpacity>
             </View>
-            <Text style={styles.userTypesDescription}>
-              Registrati per accedere a funzionalità avanzate. Ogni ruolo ha capacità specifiche:
-            </Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.userTypesScroll}>
               {userTypes.map((type, index) => (
@@ -142,21 +142,21 @@ export default function HomeScreen() {
                   >
                     <Text style={styles.userTypeEmoji}>{type.emoji}</Text>
                     <Text style={styles.userTypeTitle}>{type.title}</Text>
-                    <Text style={styles.userTypeDescription}>{type.description}</Text>
+                    <Text style={styles.userTypeDescription} numberOfLines={2}>{type.description}</Text>
                     
                     <View style={styles.userTypeFeatures}>
-                      {type.features.map((feature, fIndex) => (
+                      {type.features.slice(0, 3).map((feature, fIndex) => (
                         <React.Fragment key={fIndex}>
                           <View style={styles.featureItem}>
                             <Text style={styles.featureBullet}>•</Text>
-                            <Text style={styles.featureText}>{feature}</Text>
+                            <Text style={styles.featureText} numberOfLines={1}>{feature}</Text>
                           </View>
                         </React.Fragment>
                       ))}
                     </View>
 
                     <View style={[styles.userTypeButton, { backgroundColor: type.color }]}>
-                      <Text style={styles.userTypeButtonText}>Scopri di più</Text>
+                      <Text style={styles.userTypeButtonText}>Scopri</Text>
                     </View>
                   </TouchableOpacity>
                 </React.Fragment>
@@ -171,17 +171,19 @@ export default function HomeScreen() {
               <IconSymbol
                 ios_icon_name="arrow.right.circle.fill"
                 android_material_icon_name="arrow_circle_right"
-                size={24}
+                size={20}
                 color={colors.card}
               />
             </TouchableOpacity>
           </View>
         )}
 
+        {/* Sport Filter - More Compact */}
         <View style={styles.sportFilterSection}>
           <SportFilter selectedSport={selectedSport} onSelectSport={setSelectedSport} />
         </View>
 
+        {/* Live Matches - Optimized */}
         {liveMatches.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -194,27 +196,33 @@ export default function HomeScreen() {
 
             {liveMatches.map((match, index) => (
               <React.Fragment key={index}>
-                <MatchCard match={match} />
+                <MatchCard match={match} isLarge={index === 0} />
               </React.Fragment>
             ))}
           </View>
         )}
 
+        {/* Recent Matches - Denser Layout */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>📊 Risultati Recenti</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/tournaments')}>
-              <Text style={styles.seeAllText}>Vedi tutti</Text>
+              <Text style={styles.seeAllText}>Tutti</Text>
             </TouchableOpacity>
           </View>
 
-          {recentMatches.slice(0, 5).map((match, index) => (
-            <React.Fragment key={index}>
-              <MatchCard match={match} />
-            </React.Fragment>
-          ))}
+          <View style={styles.matchesGrid}>
+            {recentMatches.slice(0, 6).map((match, index) => (
+              <React.Fragment key={index}>
+                <View style={styles.matchGridItem}>
+                  <MatchCard match={match} />
+                </View>
+              </React.Fragment>
+            ))}
+          </View>
         </View>
 
+        {/* Quick Links - Compact Grid */}
         <View style={styles.quickLinksSection}>
           <Text style={styles.sectionTitle}>⚡ Accesso Rapido</Text>
           
@@ -224,7 +232,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/venue/register')}
             >
               <Text style={styles.quickLinkEmoji}>🏟️</Text>
-              <Text style={styles.quickLinkText}>Registra Campo</Text>
+              <Text style={styles.quickLinkText}>Campo</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -232,7 +240,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/showcase')}
             >
               <Text style={styles.quickLinkEmoji}>🌟</Text>
-              <Text style={styles.quickLinkText}>Vetrina Atleti</Text>
+              <Text style={styles.quickLinkText}>Atleti</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -240,7 +248,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/club/dashboard')}
             >
               <Text style={styles.quickLinkEmoji}>🏢</Text>
-              <Text style={styles.quickLinkText}>Gestione Società</Text>
+              <Text style={styles.quickLinkText}>Società</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -248,17 +256,18 @@ export default function HomeScreen() {
               onPress={() => router.push('/delegate/dashboard')}
             >
               <Text style={styles.quickLinkEmoji}>✅</Text>
-              <Text style={styles.quickLinkText}>Dashboard Delegato</Text>
+              <Text style={styles.quickLinkText}>Delegato</Text>
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* Guest Prompt - Compact */}
         {isGuest && (
           <View style={styles.guestPrompt}>
             <Text style={styles.guestPromptEmoji}>🎉</Text>
             <Text style={styles.guestPromptTitle}>Unisciti a Matchble!</Text>
             <Text style={styles.guestPromptText}>
-              Registrati per accedere a tutte le funzionalità: profilo atleta, video live, messaggistica e molto altro!
+              Registrati per profilo atleta, video live e messaggistica
             </Text>
             <TouchableOpacity
               style={styles.guestPromptButton}
@@ -282,39 +291,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.lg,
+    paddingTop: 56,
+    paddingBottom: spacing.md,
     backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.gray300,
+    ...shadows.sm,
   },
   logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.sm,
   },
   logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
   },
   logoText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '900',
     color: colors.text,
+    letterSpacing: -0.5,
   },
   logoSubtext: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.textSecondary,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.sm,
   },
   headerButton: {
-    padding: 8,
+    padding: spacing.sm,
   },
   content: {
     flex: 1,
@@ -324,84 +335,81 @@ const styles = StyleSheet.create({
   },
   userTypesSection: {
     backgroundColor: colors.card,
-    padding: 20,
-    marginBottom: 8,
+    padding: spacing.lg,
+    marginBottom: spacing.xs,
   },
   userTypesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   userTypesTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: colors.text,
-  },
-  userTypesDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  userTypesScroll: {
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  userTypeCard: {
-    width: 280,
-    backgroundColor: colors.background,
-    borderRadius: 16,
-    padding: 20,
-    marginRight: 16,
-    borderWidth: 2,
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-    elevation: 4,
-  },
-  userTypeEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  userTypeTitle: {
     fontSize: 18,
     fontWeight: '900',
     color: colors.text,
-    marginBottom: 8,
+  },
+  closeButton: {
+    padding: spacing.xs,
+  },
+  userTypesScroll: {
+    marginHorizontal: -spacing.lg,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  userTypeCard: {
+    width: 200,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginRight: spacing.md,
+    borderWidth: 2,
+    ...shadows.sm,
+  },
+  userTypeEmoji: {
+    fontSize: 36,
+    marginBottom: spacing.sm,
+  },
+  userTypeTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   userTypeDescription: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textSecondary,
-    lineHeight: 18,
-    marginBottom: 16,
+    lineHeight: 16,
+    marginBottom: spacing.md,
+    height: 32,
   },
   userTypeFeatures: {
-    gap: 8,
-    marginBottom: 16,
+    gap: spacing.xs,
+    marginBottom: spacing.md,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
+    gap: spacing.xs,
   },
   featureBullet: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '900',
     color: colors.primary,
   },
   featureText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.text,
   },
   userTypeButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
     alignItems: 'center',
   },
   userTypeButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
     color: colors.card,
   },
@@ -410,123 +418,137 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
+    ...shadows.md,
   },
   registerButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     color: colors.card,
   },
   sportFilterSection: {
     backgroundColor: colors.card,
-    paddingVertical: 16,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.gray300,
   },
   section: {
-    padding: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     color: colors.text,
+    letterSpacing: -0.3,
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF0000',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginRight: 12,
+    backgroundColor: colors.live,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.sm,
   },
   liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: colors.card,
-    marginRight: 6,
+    marginRight: spacing.xs,
   },
   liveText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '900',
     color: colors.card,
+    letterSpacing: 0.5,
   },
   seeAllText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: colors.primary,
   },
+  matchesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginHorizontal: -spacing.xs,
+  },
+  matchGridItem: {
+    width: '100%',
+  },
   quickLinksSection: {
-    padding: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   quickLinksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 16,
+    gap: spacing.md,
+    marginTop: spacing.md,
   },
   quickLinkCard: {
     flex: 1,
     minWidth: '45%',
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    elevation: 2,
+    ...shadows.sm,
   },
   quickLinkEmoji: {
-    fontSize: 40,
-    marginBottom: 8,
+    fontSize: 32,
+    marginBottom: spacing.xs,
   },
   quickLinkText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
   },
   guestPrompt: {
-    margin: 16,
+    margin: spacing.lg,
     backgroundColor: colors.primary,
-    borderRadius: 20,
-    padding: 32,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xxl,
     alignItems: 'center',
+    ...shadows.lg,
   },
   guestPromptEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: 48,
+    marginBottom: spacing.md,
   },
   guestPromptTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '900',
     color: colors.card,
-    marginBottom: 12,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   guestPromptText: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.card,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
   },
   guestPromptButton: {
     backgroundColor: colors.card,
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
   },
   guestPromptButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     color: colors.primary,
   },

@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { colors, spacing, borderRadius, shadows } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
 interface AppHeaderProps {
@@ -51,7 +51,7 @@ export default function AppHeader({ showNavigation = true }: AppHeaderProps) {
               <IconSymbol
                 ios_icon_name="house.fill"
                 android_material_icon_name="home"
-                size={20}
+                size={18}
                 color={isActive('/(tabs)/(home)/') ? colors.primary : colors.text}
               />
               <Text style={[
@@ -73,7 +73,7 @@ export default function AppHeader({ showNavigation = true }: AppHeaderProps) {
               <IconSymbol
                 ios_icon_name="trophy.fill"
                 android_material_icon_name="emoji_events"
-                size={20}
+                size={18}
                 color={isActive('/tournaments') ? colors.primary : colors.text}
               />
               <Text style={[
@@ -95,7 +95,7 @@ export default function AppHeader({ showNavigation = true }: AppHeaderProps) {
               <IconSymbol
                 ios_icon_name="person.fill"
                 android_material_icon_name="person"
-                size={20}
+                size={18}
                 color={isActive('/profile') ? colors.primary : colors.text}
               />
               <Text style={[
@@ -119,67 +119,67 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomColor: colors.gray300,
     ...Platform.select({
       ios: {
-        paddingTop: 50,
+        paddingTop: 48,
       },
       android: {
-        paddingTop: 48,
+        paddingTop: 44,
       },
       web: {
         paddingTop: 0,
       },
     }),
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 4,
+    ...shadows.sm,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   logo: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
   },
   logoText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     color: colors.primary,
+    letterSpacing: -0.5,
   },
   navigation: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: spacing.xs,
   },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
   },
   navButtonActive: {
     backgroundColor: `${colors.primary}15`,
   },
   navText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
   },
   navTextActive: {
     color: colors.primary,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });
