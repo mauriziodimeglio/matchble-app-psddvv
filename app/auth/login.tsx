@@ -2,30 +2,58 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { colors, spacing, borderRadius, shadows } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
+  const { login, adminLogin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Errore', 'Inserisci email e password');
       return;
     }
 
-    console.log('Logging in:', { email, password });
-    Alert.alert(
-      '✅ Login Effettuato',
-      'Benvenuto su Matchble!',
-      [
-        {
-          text: 'OK',
-          onPress: () => router.replace('/(tabs)/(home)')
-        }
-      ]
-    );
+    setLoading(true);
+    try {
+      // Try admin login first (silently)
+      const isAdmin = await adminLogin(email, password);
+      
+      if (isAdmin) {
+        Alert.alert(
+          '✅ Accesso Admin',
+          'Benvenuto Admin!',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/admin/dashboard')
+            }
+          ]
+        );
+      } else {
+        // Try regular login
+        await login(email, password);
+        Alert.alert(
+          '✅ Login Effettuato',
+          'Benvenuto su Matchble!',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/(tabs)/(home)')
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Errore', 'Credenziali non valide');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
@@ -61,6 +89,7 @@ export default function LoginScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={!loading}
             />
           </View>
 
@@ -73,6 +102,7 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              editable={!loading}
             />
           </View>
 
@@ -80,8 +110,14 @@ export default function LoginScreen() {
             <Text style={styles.forgotPasswordText}>Password dimenticata?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Accedi</Text>
+          <TouchableOpacity 
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <Text style={styles.loginButtonText}>
+              {loading ? 'Accesso in corso...' : 'Accedi'}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.divider}>
@@ -94,6 +130,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               style={styles.socialButton}
               onPress={() => handleSocialLogin('Google')}
+              disabled={loading}
             >
               <Text style={styles.googleIcon}>G</Text>
               <Text style={styles.socialButtonText}>Google</Text>
@@ -102,6 +139,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               style={styles.socialButton}
               onPress={() => handleSocialLogin('Apple')}
+              disabled={loading}
             >
               <IconSymbol
                 ios_icon_name="apple.logo"
@@ -136,15 +174,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingTop: 60,
-    paddingBottom: 16,
+    paddingBottom: spacing.lg,
     backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.gray300,
   },
   backButton: {
-    padding: 8,
+    padding: spacing.sm,
   },
   headerTitle: {
     fontSize: 20,
@@ -158,34 +196,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    padding: 24,
+    padding: spacing.xl,
     paddingTop: 60,
     paddingBottom: 100,
   },
   welcomeEmoji: {
     fontSize: 64,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   title: {
     fontSize: 28,
     fontWeight: '900',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: spacing.xxl,
     lineHeight: 24,
   },
   form: {
-    gap: 20,
+    gap: spacing.xl,
   },
   inputGroup: {
-    gap: 8,
+    gap: spacing.sm,
   },
   label: {
     fontSize: 14,
@@ -194,14 +232,14 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     fontSize: 16,
     fontWeight: '500',
     color: colors.text,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: colors.gray300,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -213,10 +251,13 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.lg,
     alignItems: 'center',
-    marginTop: 8,
+    ...shadows.md,
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
   loginButtonText: {
     fontSize: 18,
@@ -226,22 +267,21 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.gray300,
   },
   dividerText: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.textSecondary,
-    marginHorizontal: 16,
+    marginHorizontal: spacing.lg,
   },
   socialButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   socialButton: {
     flex: 1,
@@ -249,9 +289,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.text,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
   },
   socialButtonText: {
     fontSize: 16,
@@ -265,7 +305,6 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     alignItems: 'center',
-    marginTop: 8,
   },
   registerLinkText: {
     fontSize: 14,

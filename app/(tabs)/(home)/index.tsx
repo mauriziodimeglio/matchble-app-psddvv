@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { colors, spacing, borderRadius, shadows } from '@/styles/commonStyles';
-import { Sport, Match, MatchStatus } from '@/types';
+import { Sport, Match } from '@/types';
 import { mockMatches } from '@/data/mockData';
 import { SportFilter } from '@/components/SportFilter';
 import { MatchCard } from '@/components/MatchCard';
@@ -14,7 +14,6 @@ export default function HomeScreen() {
   const { isGuest, user } = useAuth();
   const [selectedSport, setSelectedSport] = useState<Sport | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
-  const [showUserTypes, setShowUserTypes] = useState(isGuest);
 
   const filteredMatches = mockMatches.filter(
     (match) => selectedSport === 'all' || match.sport === selectedSport
@@ -28,52 +27,9 @@ export default function HomeScreen() {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
-  const userTypes = [
-    {
-      id: 'guest',
-      emoji: '👀',
-      title: 'Ospite',
-      description: 'Visualizza risultati e inserisci partite',
-      color: colors.gray500,
-      features: ['Visualizza risultati', 'Inserisci partite', 'Aggiungi foto'],
-    },
-    {
-      id: 'regular',
-      emoji: '⚽',
-      title: 'Registrato',
-      description: 'Profilo atleta e tornei personali',
-      color: colors.primary,
-      features: ['Profilo atleta', 'Video live', 'Messaggi'],
-    },
-    {
-      id: 'delegate',
-      emoji: '✅',
-      title: 'Delegato',
-      description: 'Tornei ufficiali e gestione completa',
-      color: colors.calcio,
-      features: ['Tornei ufficiali', 'Upload massivo', 'Analytics'],
-    },
-    {
-      id: 'club_manager',
-      emoji: '🏢',
-      title: 'Manager',
-      description: 'Gestione società e squadre',
-      color: colors.basket,
-      features: ['Gestione società', 'Atleti', 'Planning'],
-    },
-    {
-      id: 'superuser',
-      emoji: '👑',
-      title: 'Admin',
-      description: 'Controllo totale sistema',
-      color: colors.gold,
-      features: ['Admin panel', 'Approvazioni', 'Sistema'],
-    },
-  ];
-
   return (
     <View style={styles.container}>
-      {/* Compact Header */}
+      {/* Simplified Header */}
       <View style={styles.header}>
         <View style={styles.logoSection}>
           <Image
@@ -86,30 +42,47 @@ export default function HomeScreen() {
           </View>
         </View>
         
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => router.push('/showcase')}
-          >
-            <IconSymbol
-              ios_icon_name="person.3.fill"
-              android_material_icon_name="groups"
-              size={22}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => router.push('/messages')}
-          >
-            <IconSymbol
-              ios_icon_name="message.fill"
-              android_material_icon_name="message"
-              size={22}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
-        </View>
+        {isGuest ? (
+          <View style={styles.authButtons}>
+            <TouchableOpacity
+              style={styles.guestButton}
+              onPress={() => router.push('/auth/guest-access')}
+            >
+              <Text style={styles.guestButtonText}>Accedi</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={() => router.push('/auth/register')}
+            >
+              <Text style={styles.registerButtonText}>Registra</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => router.push('/showcase')}
+            >
+              <IconSymbol
+                ios_icon_name="person.3.fill"
+                android_material_icon_name="groups"
+                size={22}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => router.push('/messages')}
+            >
+              <IconSymbol
+                ios_icon_name="message.fill"
+                android_material_icon_name="message"
+                size={22}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <ScrollView
@@ -118,72 +91,12 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Compact User Types Section */}
-        {showUserTypes && (
-          <View style={styles.userTypesSection}>
-            <View style={styles.userTypesHeader}>
-              <Text style={styles.userTypesTitle}>🎯 Scegli il Tuo Ruolo</Text>
-              <TouchableOpacity onPress={() => setShowUserTypes(false)} style={styles.closeButton}>
-                <IconSymbol
-                  ios_icon_name="xmark.circle.fill"
-                  android_material_icon_name="cancel"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.userTypesScroll}>
-              {userTypes.map((type, index) => (
-                <React.Fragment key={index}>
-                  <TouchableOpacity
-                    style={[styles.userTypeCard, { borderColor: type.color }]}
-                    onPress={() => router.push('/auth/register')}
-                  >
-                    <Text style={styles.userTypeEmoji}>{type.emoji}</Text>
-                    <Text style={styles.userTypeTitle}>{type.title}</Text>
-                    <Text style={styles.userTypeDescription} numberOfLines={2}>{type.description}</Text>
-                    
-                    <View style={styles.userTypeFeatures}>
-                      {type.features.slice(0, 3).map((feature, fIndex) => (
-                        <React.Fragment key={fIndex}>
-                          <View style={styles.featureItem}>
-                            <Text style={styles.featureBullet}>•</Text>
-                            <Text style={styles.featureText} numberOfLines={1}>{feature}</Text>
-                          </View>
-                        </React.Fragment>
-                      ))}
-                    </View>
-
-                    <View style={[styles.userTypeButton, { backgroundColor: type.color }]}>
-                      <Text style={styles.userTypeButtonText}>Scopri</Text>
-                    </View>
-                  </TouchableOpacity>
-                </React.Fragment>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={styles.registerButton}
-              onPress={() => router.push('/auth/register')}
-            >
-              <Text style={styles.registerButtonText}>Registrati Ora</Text>
-              <IconSymbol
-                ios_icon_name="arrow.right.circle.fill"
-                android_material_icon_name="arrow_circle_right"
-                size={20}
-                color={colors.card}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Sport Filter - More Compact */}
+        {/* Sport Filter */}
         <View style={styles.sportFilterSection}>
           <SportFilter selectedSport={selectedSport} onSelectSport={setSelectedSport} />
         </View>
 
-        {/* Live Matches - Optimized */}
+        {/* Live Matches */}
         {liveMatches.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -202,7 +115,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Recent Matches - Denser Layout */}
+        {/* Recent Matches */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>📊 Risultati Recenti</Text>
@@ -222,59 +135,70 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Quick Links - Compact Grid */}
-        <View style={styles.quickLinksSection}>
-          <Text style={styles.sectionTitle}>⚡ Accesso Rapido</Text>
-          
-          <View style={styles.quickLinksGrid}>
-            <TouchableOpacity
-              style={styles.quickLinkCard}
-              onPress={() => router.push('/venue/register')}
-            >
-              <Text style={styles.quickLinkEmoji}>🏟️</Text>
-              <Text style={styles.quickLinkText}>Campo</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.quickLinkCard}
-              onPress={() => router.push('/showcase')}
-            >
-              <Text style={styles.quickLinkEmoji}>🌟</Text>
-              <Text style={styles.quickLinkText}>Atleti</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.quickLinkCard}
-              onPress={() => router.push('/club/dashboard')}
-            >
-              <Text style={styles.quickLinkEmoji}>🏢</Text>
-              <Text style={styles.quickLinkText}>Società</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.quickLinkCard}
-              onPress={() => router.push('/delegate/dashboard')}
-            >
-              <Text style={styles.quickLinkEmoji}>✅</Text>
-              <Text style={styles.quickLinkText}>Delegato</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Guest Prompt - Compact */}
+        {/* Guest Welcome Section */}
         {isGuest && (
-          <View style={styles.guestPrompt}>
-            <Text style={styles.guestPromptEmoji}>🎉</Text>
-            <Text style={styles.guestPromptTitle}>Unisciti a Matchble!</Text>
-            <Text style={styles.guestPromptText}>
-              Registrati per profilo atleta, video live e messaggistica
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeEmoji}>🎯</Text>
+            <Text style={styles.welcomeTitle}>Benvenuto su Matchble!</Text>
+            <Text style={styles.welcomeText}>
+              La piattaforma per gestire tornei, risultati e società sportive
             </Text>
-            <TouchableOpacity
-              style={styles.guestPromptButton}
-              onPress={() => router.push('/auth/register')}
-            >
-              <Text style={styles.guestPromptButtonText}>Registrati Gratis</Text>
-            </TouchableOpacity>
+
+            <View style={styles.featuresGrid}>
+              <View style={styles.featureCard}>
+                <Text style={styles.featureEmoji}>👀</Text>
+                <Text style={styles.featureTitle}>Ospite</Text>
+                <Text style={styles.featureDescription}>
+                  Visualizza risultati e inserisci partite senza registrazione
+                </Text>
+              </View>
+
+              <View style={styles.featureCard}>
+                <Text style={styles.featureEmoji}>⚽</Text>
+                <Text style={styles.featureTitle}>Atleta</Text>
+                <Text style={styles.featureDescription}>
+                  Profilo personale, preferenze tornei e notifiche
+                </Text>
+              </View>
+
+              <View style={styles.featureCard}>
+                <Text style={styles.featureEmoji}>✅</Text>
+                <Text style={styles.featureTitle}>Delegato</Text>
+                <Text style={styles.featureDescription}>
+                  Gestione tornei ufficiali e caricamento massivo
+                </Text>
+              </View>
+
+              <View style={styles.featureCard}>
+                <Text style={styles.featureEmoji}>🏢</Text>
+                <Text style={styles.featureTitle}>Manager</Text>
+                <Text style={styles.featureDescription}>
+                  Gestione completa società, atleti e planning
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.ctaButtons}>
+              <TouchableOpacity
+                style={styles.ctaButtonPrimary}
+                onPress={() => router.push('/auth/guest-access')}
+              >
+                <Text style={styles.ctaButtonPrimaryText}>Accedi Senza Registrazione</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.ctaButtonSecondary}
+                onPress={() => router.push('/auth/register')}
+              >
+                <Text style={styles.ctaButtonSecondaryText}>Registrati Ora</Text>
+                <IconSymbol
+                  ios_icon_name="arrow.right.circle.fill"
+                  android_material_icon_name="arrow_circle_right"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -320,6 +244,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textSecondary,
   },
+  authButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  guestButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  guestButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  registerButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.primary,
+  },
+  registerButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.card,
+  },
   headerActions: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -332,101 +283,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 100,
-  },
-  userTypesSection: {
-    backgroundColor: colors.card,
-    padding: spacing.lg,
-    marginBottom: spacing.xs,
-  },
-  userTypesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  userTypesTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: colors.text,
-  },
-  closeButton: {
-    padding: spacing.xs,
-  },
-  userTypesScroll: {
-    marginHorizontal: -spacing.lg,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  userTypeCard: {
-    width: 200,
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    marginRight: spacing.md,
-    borderWidth: 2,
-    ...shadows.sm,
-  },
-  userTypeEmoji: {
-    fontSize: 36,
-    marginBottom: spacing.sm,
-  },
-  userTypeTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  userTypeDescription: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    lineHeight: 16,
-    marginBottom: spacing.md,
-    height: 32,
-  },
-  userTypeFeatures: {
-    gap: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.xs,
-  },
-  featureBullet: {
-    fontSize: 12,
-    fontWeight: '900',
-    color: colors.primary,
-  },
-  featureText: {
-    flex: 1,
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  userTypeButton: {
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
-  },
-  userTypeButtonText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: colors.card,
-  },
-  registerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    gap: spacing.sm,
-    ...shadows.md,
-  },
-  registerButtonText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: colors.card,
   },
   sportFilterSection: {
     backgroundColor: colors.card,
@@ -478,78 +334,99 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   matchesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.md,
-    marginHorizontal: -spacing.xs,
   },
   matchGridItem: {
     width: '100%',
   },
-  quickLinksSection: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  quickLinksGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginTop: spacing.md,
-  },
-  quickLinkCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  quickLinkEmoji: {
-    fontSize: 32,
-    marginBottom: spacing.xs,
-  },
-  quickLinkText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
-  },
-  guestPrompt: {
+  welcomeSection: {
     margin: spacing.lg,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.card,
     borderRadius: borderRadius.xl,
     padding: spacing.xxl,
     alignItems: 'center',
     ...shadows.lg,
   },
-  guestPromptEmoji: {
-    fontSize: 48,
+  welcomeEmoji: {
+    fontSize: 64,
     marginBottom: spacing.md,
   },
-  guestPromptTitle: {
-    fontSize: 20,
+  welcomeTitle: {
+    fontSize: 24,
     fontWeight: '900',
-    color: colors.card,
+    color: colors.text,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
-  guestPromptText: {
-    fontSize: 14,
-    color: colors.card,
+  welcomeText: {
+    fontSize: 15,
+    color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: spacing.lg,
+    lineHeight: 22,
+    marginBottom: spacing.xl,
   },
-  guestPromptButton: {
-    backgroundColor: colors.card,
-    paddingHorizontal: spacing.xxl,
-    paddingVertical: spacing.md,
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginBottom: spacing.xl,
+    width: '100%',
+  },
+  featureCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  featureEmoji: {
+    fontSize: 32,
+    marginBottom: spacing.sm,
+  },
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  featureDescription: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  ctaButtons: {
+    width: '100%',
+    gap: spacing.md,
+  },
+  ctaButtonPrimary: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.lg,
     borderRadius: borderRadius.md,
+    alignItems: 'center',
+    ...shadows.md,
   },
-  guestPromptButtonText: {
+  ctaButtonPrimaryText: {
     fontSize: 16,
     fontWeight: '900',
+    color: colors.card,
+  },
+  ctaButtonSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    gap: spacing.sm,
+  },
+  ctaButtonSecondaryText: {
+    fontSize: 16,
+    fontWeight: '800',
     color: colors.primary,
   },
 });
