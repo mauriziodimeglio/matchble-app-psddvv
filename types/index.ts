@@ -7,7 +7,9 @@ export type TournamentStatus = 'upcoming' | 'ongoing' | 'finished';
 
 export type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
-export type NotificationType = 'match_result' | 'tournament_start' | 'tournament_update' | 'team_invite' | 'verification_approved' | 'verification_rejected' | 'athlete_request' | 'training_reminder';
+export type ResultStatus = 'provisional' | 'accepted' | 'official';
+
+export type NotificationType = 'match_result' | 'tournament_start' | 'tournament_update' | 'team_invite' | 'verification_approved' | 'verification_rejected' | 'athlete_request' | 'training_reminder' | 'result_validation';
 
 export type ReferenceType = 'match' | 'tournament' | 'team' | 'athlete' | 'training';
 
@@ -46,6 +48,15 @@ export interface Team {
   gender?: Gender;
 }
 
+export interface ResultValidation {
+  userId: string;
+  userName: string;
+  userRole: 'team_representative' | 'player' | 'official';
+  teamId?: string;
+  validatedAt: Date;
+  approved: boolean;
+}
+
 export interface Match {
   id: string;
   sport: Sport;
@@ -67,6 +78,10 @@ export interface Match {
   };
   media?: string[];
   gender?: Gender;
+  resultStatus?: ResultStatus;
+  validations?: ResultValidation[];
+  officialSourceUrl?: string;
+  submittedBy?: string;
 }
 
 export interface Tournament {
@@ -142,7 +157,6 @@ export interface AthleteProfile {
   userId: string;
   sport: Sport;
   
-  // Public info (visible to everyone)
   publicProfile: {
     displayName: string;
     photo?: string;
@@ -150,9 +164,10 @@ export interface AthleteProfile {
     position?: string;
     motto?: string;
     achievements: string[];
+    videos?: string[];
+    highlights?: string[];
   };
   
-  // Private info (only visible to associated clubs)
   privateProfile: {
     fullName: string;
     dateOfBirth: Date;
@@ -168,7 +183,6 @@ export interface AthleteProfile {
     weight?: number;
   };
   
-  // Stats
   stats: {
     matchesPlayed: number;
     goals?: number;
@@ -463,6 +477,12 @@ export interface FirestoreMatch {
   submittedByName: string;
   verified: boolean;
   verificationStatus: VerificationStatus;
+  
+  resultStatus: ResultStatus;
+  validations: ResultValidation[];
+  officialSourceUrl?: string;
+  officialConfirmedAt?: Date;
+  
   createdAt: Date;
   updatedAt: Date;
   
