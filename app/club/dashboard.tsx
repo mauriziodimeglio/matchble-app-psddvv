@@ -6,7 +6,7 @@ import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Gender } from '@/types';
 
-type TabType = 'overview' | 'teams' | 'tournaments';
+type TabType = 'overview' | 'teams' | 'athletes' | 'planning' | 'venues';
 
 interface ClubTeam {
   id: string;
@@ -27,9 +27,11 @@ export default function ClubManagerDashboard() {
     logo: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=200',
     city: 'Milano',
     foundedYear: 1985,
+    motto: 'Insieme verso la vittoria!',
     totalTeams: 8,
     totalPlayers: 156,
-    activeTournaments: 5
+    activeTournaments: 5,
+    totalVenues: 3,
   };
 
   const teams: ClubTeam[] = [
@@ -94,6 +96,9 @@ export default function ClubManagerDashboard() {
           <Text style={styles.clubName}>{clubInfo.name}</Text>
           <Text style={styles.clubLocation}>📍 {clubInfo.city}</Text>
           <Text style={styles.clubFounded}>Fondato nel {clubInfo.foundedYear}</Text>
+          {clubInfo.motto && (
+            <Text style={styles.clubMotto}>"{clubInfo.motto}"</Text>
+          )}
         </View>
       </View>
 
@@ -115,11 +120,45 @@ export default function ClubManagerDashboard() {
           <Text style={styles.statValue}>{clubInfo.activeTournaments}</Text>
           <Text style={styles.statLabel}>Tornei Attivi</Text>
         </View>
+
+        <View style={styles.statCard}>
+          <Text style={styles.statEmoji}>🏟️</Text>
+          <Text style={styles.statValue}>{clubInfo.totalVenues}</Text>
+          <Text style={styles.statLabel}>Impianti</Text>
+        </View>
       </View>
 
       <View style={styles.quickActions}>
         <Text style={styles.sectionTitle}>⚡ Azioni Rapide</Text>
         
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => router.push('/club/athletes')}
+        >
+          <Text style={styles.actionEmoji}>👤</Text>
+          <Text style={styles.actionText}>Gestisci Atleti</Text>
+          <IconSymbol
+            ios_icon_name="chevron.right"
+            android_material_icon_name="chevron_right"
+            size={20}
+            color={colors.textSecondary}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => router.push('/club/planning')}
+        >
+          <Text style={styles.actionEmoji}>📅</Text>
+          <Text style={styles.actionText}>Planning Attività</Text>
+          <IconSymbol
+            ios_icon_name="chevron.right"
+            android_material_icon_name="chevron_right"
+            size={20}
+            color={colors.textSecondary}
+          />
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => Alert.alert('Aggiungi Squadra', 'Funzionalità in arrivo')}
@@ -136,10 +175,10 @@ export default function ClubManagerDashboard() {
 
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => Alert.alert('Iscrivi a Torneo', 'Funzionalità in arrivo')}
+          onPress={() => router.push('/venue/register')}
         >
-          <Text style={styles.actionEmoji}>🏆</Text>
-          <Text style={styles.actionText}>Iscrivi Squadra a Torneo</Text>
+          <Text style={styles.actionEmoji}>🏟️</Text>
+          <Text style={styles.actionText}>Registra Campo</Text>
           <IconSymbol
             ios_icon_name="chevron.right"
             android_material_icon_name="chevron_right"
@@ -150,10 +189,10 @@ export default function ClubManagerDashboard() {
 
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => Alert.alert('Gestisci Atleti', 'Funzionalità in arrivo')}
+          onPress={() => Alert.alert('Carica Partite', 'Funzionalità in arrivo')}
         >
-          <Text style={styles.actionEmoji}>👤</Text>
-          <Text style={styles.actionText}>Gestisci Atleti</Text>
+          <Text style={styles.actionEmoji}>📤</Text>
+          <Text style={styles.actionText}>Carica Partite Società</Text>
           <IconSymbol
             ios_icon_name="chevron.right"
             android_material_icon_name="chevron_right"
@@ -266,11 +305,25 @@ export default function ClubManagerDashboard() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'tournaments' && styles.tabActive]}
-          onPress={() => setActiveTab('tournaments')}
+          style={[styles.tab, activeTab === 'athletes' && styles.tabActive]}
+          onPress={() => {
+            setActiveTab('athletes');
+            router.push('/club/athletes');
+          }}
         >
-          <Text style={[styles.tabText, activeTab === 'tournaments' && styles.tabTextActive]}>
-            Tornei
+          <Text style={[styles.tabText, activeTab === 'athletes' && styles.tabTextActive]}>
+            Atleti
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'planning' && styles.tabActive]}
+          onPress={() => {
+            setActiveTab('planning');
+            router.push('/club/planning');
+          }}
+        >
+          <Text style={[styles.tabText, activeTab === 'planning' && styles.tabTextActive]}>
+            Planning
           </Text>
         </TouchableOpacity>
       </View>
@@ -278,12 +331,6 @@ export default function ClubManagerDashboard() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'teams' && renderTeams()}
-        {activeTab === 'tournaments' && (
-          <View style={styles.tabContent}>
-            <Text style={styles.emptyStateEmoji}>🏆</Text>
-            <Text style={styles.emptyStateText}>Tornei in arrivo</Text>
-          </View>
-        )}
       </ScrollView>
     </View>
   );
@@ -343,7 +390,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.primary,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
   },
@@ -395,13 +442,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  clubMotto: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: colors.primary,
+    marginTop: 4,
   },
   statsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   statCard: {
     flex: 1,
+    minWidth: '45%',
     backgroundColor: colors.card,
     borderRadius: 16,
     padding: 20,
@@ -522,17 +578,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: colors.text,
-  },
-  emptyStateEmoji: {
-    fontSize: 64,
-    textAlign: 'center',
-    marginTop: 60,
-    marginBottom: 16,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
 });

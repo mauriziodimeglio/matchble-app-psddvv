@@ -7,9 +7,9 @@ export type TournamentStatus = 'upcoming' | 'ongoing' | 'finished';
 
 export type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
-export type NotificationType = 'match_result' | 'tournament_start' | 'tournament_update' | 'team_invite' | 'verification_approved' | 'verification_rejected';
+export type NotificationType = 'match_result' | 'tournament_start' | 'tournament_update' | 'team_invite' | 'verification_approved' | 'verification_rejected' | 'athlete_request' | 'training_reminder';
 
-export type ReferenceType = 'match' | 'tournament' | 'team';
+export type ReferenceType = 'match' | 'tournament' | 'team' | 'athlete' | 'training';
 
 export type TournamentFormat = 'league' | 'knockout' | 'groups';
 
@@ -17,7 +17,7 @@ export type TournamentLevel = 'beginner' | 'intermediate' | 'advanced' | 'open';
 
 export type FormResult = 'W' | 'L' | 'D';
 
-export type UserRole = 'regular' | 'verified' | 'club_manager' | 'superuser';
+export type UserRole = 'guest' | 'regular' | 'verified' | 'club_manager' | 'superuser';
 
 export type OrganizerType = 'national' | 'regional' | 'private';
 
@@ -26,6 +26,14 @@ export type VerificationRequestStatus = 'pending' | 'approved' | 'rejected';
 export type TerritorialLevel = 'nazionale' | 'regionale' | 'provinciale' | 'comunale' | 'locale';
 
 export type Gender = 'male' | 'female' | 'mixed';
+
+export type ActivityType = 'match' | 'training' | 'meeting' | 'event';
+
+export type AthleteRole = 'player' | 'captain' | 'vice_captain' | 'reserve';
+
+export type ClubRole = 'president' | 'vice_president' | 'coach' | 'assistant_coach' | 'manager' | 'staff';
+
+export type AssociationStatus = 'pending' | 'accepted' | 'rejected';
 
 import { PermissionsType, PermissionPreset } from './permissions';
 export type { PermissionsType, PermissionPreset };
@@ -103,6 +111,234 @@ export interface UserProfile {
     wins: number;
     losses: number;
   };
+}
+
+export interface Venue {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  province: string;
+  region: string;
+  sport: Sport[];
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  capacity?: number;
+  indoor: boolean;
+  facilities: string[];
+  photos: string[];
+  contactPhone?: string;
+  contactEmail?: string;
+  openingHours?: string;
+  verified: boolean;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export interface AthleteProfile {
+  id: string;
+  userId: string;
+  sport: Sport;
+  
+  // Public info (visible to everyone)
+  publicProfile: {
+    displayName: string;
+    photo?: string;
+    jerseyNumber?: number;
+    position?: string;
+    motto?: string;
+    achievements: string[];
+  };
+  
+  // Private info (only visible to associated clubs)
+  privateProfile: {
+    fullName: string;
+    dateOfBirth: Date;
+    phone?: string;
+    email?: string;
+    emergencyContact?: {
+      name: string;
+      phone: string;
+      relationship: string;
+    };
+    medicalNotes?: string;
+    height?: number;
+    weight?: number;
+  };
+  
+  // Stats
+  stats: {
+    matchesPlayed: number;
+    goals?: number;
+    assists?: number;
+    yellowCards?: number;
+    redCards?: number;
+    mvpAwards?: number;
+  };
+  
+  clubAssociations: Array<{
+    clubId: string;
+    clubName: string;
+    teamId: string;
+    teamName: string;
+    role: AthleteRole;
+    status: AssociationStatus;
+    requestedAt: Date;
+    acceptedAt?: Date;
+  }>;
+  
+  availability: {
+    monday: boolean;
+    tuesday: boolean;
+    wednesday: boolean;
+    thursday: boolean;
+    friday: boolean;
+    saturday: boolean;
+    sunday: boolean;
+  };
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ClubMember {
+  id: string;
+  userId: string;
+  clubId: string;
+  role: ClubRole;
+  permissions: string[];
+  joinedAt: Date;
+  status: 'active' | 'suspended' | 'inactive';
+}
+
+export interface SportsClub {
+  id: string;
+  name: string;
+  logo: string;
+  sport: Sport;
+  city: string;
+  province: string;
+  region: string;
+  foundedYear: number;
+  description: string;
+  motto?: string;
+  colors: {
+    primary: string;
+    secondary: string;
+  };
+  
+  managerId: string;
+  managerName: string;
+  
+  members: ClubMember[];
+  teams: string[];
+  venues: string[];
+  
+  socialMedia?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    website?: string;
+  };
+  
+  verified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ClubTeam {
+  id: string;
+  clubId: string;
+  name: string;
+  sport: Sport;
+  gender: Gender;
+  category: string;
+  logo?: string;
+  motto?: string;
+  
+  coachId?: string;
+  coachName?: string;
+  
+  athleteIds: string[];
+  
+  homeVenueId: string;
+  
+  stats: {
+    matchesPlayed: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    points: number;
+  };
+  
+  activeTournaments: string[];
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Activity {
+  id: string;
+  type: ActivityType;
+  title: string;
+  description?: string;
+  
+  clubId: string;
+  teamId?: string;
+  
+  sport: Sport;
+  
+  venueId: string;
+  venueName: string;
+  
+  startTime: Date;
+  endTime: Date;
+  
+  participants: string[];
+  maxParticipants?: number;
+  
+  notes?: string;
+  
+  status: 'scheduled' | 'ongoing' | 'completed' | 'cancelled';
+  
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LiveStream {
+  id: string;
+  matchId: string;
+  streamUrl: string;
+  startedAt: Date;
+  endedAt?: Date;
+  viewerCount: number;
+  streamerId: string;
+  streamerName: string;
+  status: 'live' | 'ended';
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar?: string;
+  receiverId: string;
+  content: string;
+  read: boolean;
+  createdAt: Date;
+}
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  lastMessage: Message;
+  unreadCount: number;
+  updatedAt: Date;
 }
 
 export interface FirestoreOrganizer {
@@ -185,22 +421,6 @@ export interface UserAffiliation {
   permissionsPreset?: PermissionPreset;
 }
 
-export interface SportsClub {
-  id: string;
-  name: string;
-  logo: string;
-  sport: Sport;
-  city: string;
-  region: string;
-  foundedYear: number;
-  description: string;
-  managerId: string;
-  managerName: string;
-  teams: string[];
-  verified: boolean;
-  createdAt: Date;
-}
-
 export interface FirestoreMatch {
   id: string;
   sport: Sport;
@@ -214,6 +434,7 @@ export interface FirestoreMatch {
   homeScore: number;
   awayScore: number;
   
+  venueId: string;
   location: {
     name: string;
     address: string;
@@ -224,7 +445,19 @@ export interface FirestoreMatch {
   tournamentId: string | null;
   tournamentName: string | null;
   
+  clubId?: string;
+  
   photos: string[];
+  videos: string[];
+  liveStreamId?: string;
+  
+  notes: string[];
+  comments: Array<{
+    userId: string;
+    userName: string;
+    text: string;
+    createdAt: Date;
+  }>;
   
   submittedBy: string;
   submittedByName: string;
@@ -247,6 +480,7 @@ export interface FirestoreTournament {
   endDate: Date;
   registrationDeadline: Date;
   
+  venueIds: string[];
   location: {
     name: string;
     city: string;
@@ -301,6 +535,7 @@ export interface FirestoreTeam {
   
   logo: string | null;
   color: string;
+  motto?: string;
   
   captainId: string;
   captainName: string;
@@ -372,6 +607,7 @@ export interface FirestoreUser {
   affiliations: UserAffiliation[];
   
   managedClubId?: string;
+  athleteProfileId?: string;
   
   organizerId?: string;
   organizerRole?: string;
@@ -403,7 +639,8 @@ export interface FirestoreIndexes {
   matches: {
     composite: [
       ['sport', 'status', 'date'],
-      ['tournamentId', 'date']
+      ['tournamentId', 'date'],
+      ['venueId', 'date']
     ];
   };
   tournaments: {
@@ -419,6 +656,13 @@ export interface FirestoreIndexes {
   users: {
     composite: [
       ['favoriteCity', 'favoriteSports']
+    ];
+  };
+  activities: {
+    composite: [
+      ['clubId', 'startTime'],
+      ['venueId', 'startTime'],
+      ['type', 'status', 'startTime']
     ];
   };
 }
@@ -440,6 +684,7 @@ export interface BulkUploadTournament {
   maxTeams: number;
   division?: string;
   group?: string;
+  venueIds: string[];
 }
 
 export interface BulkUploadMatchDay {
@@ -450,8 +695,20 @@ export interface BulkUploadMatchDay {
     awayTeam: string;
     homeScore?: number;
     awayScore?: number;
-    venue: string;
+    venueId: string;
   }>;
+}
+
+export interface BulkUploadMatch {
+  clubId: string;
+  sport: Sport;
+  gender: Gender;
+  matchType: 'tournament' | 'friendly';
+  date: string;
+  homeTeam: string;
+  awayTeam: string;
+  venueId: string;
+  tournamentId?: string;
 }
 
 export interface ScoringSystem {
