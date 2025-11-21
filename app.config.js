@@ -3,6 +3,7 @@ module.exports = {
   expo: {
     name: "Matchble",
     slug: "matchble",
+    owner: "mdimeglio",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/final_quest_240x240.png",
@@ -60,7 +61,7 @@ module.exports = {
         origin: false
       },
       eas: {
-        projectId: "your-project-id"
+        projectId: "4cf76052-d5a6-4eeb-b31e-031bc702c852"
       },
       ADMIN_EMAIL: process.env.ADMIN_EMAIL,
       ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
