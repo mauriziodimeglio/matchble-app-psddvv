@@ -1,1077 +1,653 @@
 
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from 'react';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { colors, spacing, borderRadius, shadows } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { sportIcons } from '@/data/mockData';
-import { mockFirestoreUsers } from '@/data/firestoreMockData';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import AppHeader from '@/components/AppHeader';
-import { useLocalization } from '@/contexts/LocalizationContext';
 
 export default function ProfileScreen() {
-  const isGuest = false;
-  const [showRolesModal, setShowRolesModal] = useState(false);
-  const [showDemoSelector, setShowDemoSelector] = useState(false);
-  const [selectedDemoUser, setSelectedDemoUser] = useState('user_001');
-  const { language } = useLocalization();
-  
-  const currentUser = mockFirestoreUsers.find(u => u.uid === selectedDemoUser);
-  const isSuperuser = currentUser?.role === 'superuser';
-  const isVerified = currentUser?.role === 'verified';
-  const isClubManager = currentUser?.role === 'club_manager';
+  const { user, isAuthenticated, isGuest, logout } = useAuth();
+  const { favoriteTournaments, favoriteGroups, favoriteTeams } = useFavorites();
 
-  const demoUsers = [
-    { id: 'user_001', name: 'Marco Rossi', role: 'Delegato Verificato', icon: '✅' },
-    { id: 'user_002', name: 'Luca Bianchi', role: 'Delegato Verificato', icon: '✅' },
-    { id: 'user_003', name: 'Giuseppe Verdi', role: 'Utente Regular', icon: '👤' },
-    { id: 'user_club_001', name: 'Anna Ferrari', role: 'Responsabile Società', icon: '🏢' },
-    { id: 'user_superuser_001', name: 'Admin Matchble', role: 'Superuser', icon: '👑' },
-  ];
-
-  const RolesModal = () => (
-    <Modal
-      visible={showRolesModal}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setShowRolesModal(false)}
-    >
-      <TouchableOpacity 
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowRolesModal(false)}
-      >
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Ruoli Utente</Text>
-          
-          <View style={styles.roleCard}>
-            <Text style={styles.roleEmoji}>👤</Text>
-            <View style={styles.roleInfo}>
-              <Text style={styles.roleName}>Utente Regular</Text>
-              <Text style={styles.roleDescription}>
-                - Visualizza risultati e classifiche{'\n'}
-                - Crea tornei non ufficiali{'\n'}
-                - Pubblica risultati partite
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.roleCard}>
-            <Text style={styles.roleEmoji}>✅</Text>
-            <View style={styles.roleInfo}>
-              <Text style={styles.roleName}>Delegato Verificato</Text>
-              <Text style={styles.roleDescription}>
-                - Tutti i permessi di Utente Regular{'\n'}
-                - Crea tornei ufficiali per organizzatori affiliati{'\n'}
-                - Gestisce risultati e classifiche ufficiali{'\n'}
-                - Caricamento massivo squadre e tornei{'\n'}
-                - Può avere affiliazioni multiple
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.roleCard}>
-            <Text style={styles.roleEmoji}>🏢</Text>
-            <View style={styles.roleInfo}>
-              <Text style={styles.roleName}>Responsabile Società</Text>
-              <Text style={styles.roleDescription}>
-                - Gestisce una società sportiva{'\n'}
-                - Crea e gestisce squadre (maschili/femminili){'\n'}
-                - Iscrive squadre ai tornei{'\n'}
-                - Gestisce atleti e staff{'\n'}
-                - Visualizza statistiche società
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.roleCard}>
-            <Text style={styles.roleEmoji}>👑</Text>
-            <View style={styles.roleInfo}>
-              <Text style={styles.roleName}>Superuser</Text>
-              <Text style={styles.roleDescription}>
-                - Controllo totale del sistema{'\n'}
-                - Autorizza/revoca delegati verificati{'\n'}
-                - Gestisce tutti gli organizzatori{'\n'}
-                - Caricamento massivo dati{'\n'}
-                - Accesso dashboard amministrativa
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={styles.modalCloseButton}
-            onPress={() => setShowRolesModal(false)}
-          >
-            <Text style={styles.modalCloseText}>Chiudi</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-
-  const DemoSelectorModal = () => (
-    <Modal
-      visible={showDemoSelector}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setShowDemoSelector(false)}
-    >
-      <TouchableOpacity 
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setShowDemoSelector(false)}
-      >
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Seleziona Profilo Demo</Text>
-          <Text style={styles.modalSubtitle}>
-            Cambia profilo per testare diverse funzionalità
-          </Text>
-          
-          {demoUsers.map((user, index) => (
-            <React.Fragment key={index}>
-              <TouchableOpacity
-                style={[
-                  styles.demoUserCard,
-                  selectedDemoUser === user.id && styles.demoUserCardActive
-                ]}
-                onPress={() => {
-                  setSelectedDemoUser(user.id);
-                  setShowDemoSelector(false);
-                }}
-              >
-                <Text style={styles.demoUserEmoji}>{user.icon}</Text>
-                <View style={styles.demoUserInfo}>
-                  <Text style={styles.demoUserName}>{user.name}</Text>
-                  <Text style={styles.demoUserRole}>{user.role}</Text>
-                </View>
-                {selectedDemoUser === user.id && (
-                  <IconSymbol
-                    ios_icon_name="checkmark.circle.fill"
-                    android_material_icon_name="check_circle"
-                    size={24}
-                    color={colors.primary}
-                  />
-                )}
-              </TouchableOpacity>
-            </React.Fragment>
-          ))}
-
-          <TouchableOpacity
-            style={styles.modalCloseButton}
-            onPress={() => setShowDemoSelector(false)}
-          >
-            <Text style={styles.modalCloseText}>Chiudi</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-
-  if (isGuest) {
+  if (!isAuthenticated || isGuest) {
     return (
-      <View style={commonStyles.container}>
+      <View style={styles.container}>
         <AppHeader />
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.guestContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.guestEmoji}>🏆</Text>
-          <Text style={styles.guestTitle}>Benvenuto su Matchble!</Text>
-          <Text style={styles.guestSubtitle}>
-            Registrati per pubblicare risultati e creare tornei
-          </Text>
-
-          <View style={styles.featuresList}>
-            <View style={styles.featureItem}>
-              <IconSymbol
-                ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check_circle"
-                size={24}
-                color={colors.primary}
-              />
-              <Text style={styles.featureText}>Pubblica risultati delle partite</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <IconSymbol
-                ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check_circle"
-                size={24}
-                color={colors.primary}
-              />
-              <Text style={styles.featureText}>Crea e gestisci tornei</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <IconSymbol
-                ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check_circle"
-                size={24}
-                color={colors.primary}
-              />
-              <Text style={styles.featureText}>Traccia le tue statistiche</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <IconSymbol
-                ios_icon_name="checkmark.circle.fill"
-                android_material_icon_name="check_circle"
-                size={24}
-                color={colors.primary}
-              />
-              <Text style={styles.featureText}>Connettiti con altri atleti</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity 
-            style={[buttonStyles.primary, styles.registerButton]}
-            activeOpacity={0.8}
-            onPress={() => router.push('/auth/register')}
-          >
-            <Text style={styles.buttonText}>Registrati</Text>
-          </TouchableOpacity>
-
-          <View style={styles.socialButtons}>
-            <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-              <IconSymbol
-                ios_icon_name="apple.logo"
-                android_material_icon_name="apple"
-                size={24}
-                color={colors.card}
-              />
-              <Text style={styles.socialButtonText}>Apple</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-              <Text style={styles.googleIcon}>G</Text>
-              <Text style={styles.socialButtonText}>Google</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={styles.loginLink}
-            onPress={() => router.push('/auth/login')}
-          >
-            <Text style={styles.loginLinkText}>
-              Hai già un account? <Text style={styles.loginLinkBold}>Accedi</Text>
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+          <View style={styles.guestState}>
+            <Text style={styles.guestEmoji}>👤</Text>
+            <Text style={styles.guestTitle}>Modalità Ospite</Text>
+            <Text style={styles.guestText}>
+              Accedi o registrati per accedere al tuo profilo, salvare preferenze e ricevere notifiche
             </Text>
-          </TouchableOpacity>
+
+            <View style={styles.guestButtons}>
+              <TouchableOpacity
+                style={styles.guestButtonPrimary}
+                onPress={() => router.push('/auth/login')}
+              >
+                <Text style={styles.guestButtonPrimaryText}>Accedi</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.guestButtonSecondary}
+                onPress={() => router.push('/auth/register')}
+              >
+                <Text style={styles.guestButtonSecondaryText}>Registrati</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.benefitsSection}>
+              <Text style={styles.benefitsTitle}>Vantaggi della Registrazione</Text>
+              <View style={styles.benefitsList}>
+                <View style={styles.benefitItem}>
+                  <Text style={styles.benefitEmoji}>⭐</Text>
+                  <Text style={styles.benefitText}>Salva tornei e squadre preferiti</Text>
+                </View>
+                <View style={styles.benefitItem}>
+                  <Text style={styles.benefitEmoji}>🔔</Text>
+                  <Text style={styles.benefitText}>Ricevi notifiche sui risultati</Text>
+                </View>
+                <View style={styles.benefitItem}>
+                  <Text style={styles.benefitEmoji}>📊</Text>
+                  <Text style={styles.benefitText}>Traccia le tue statistiche</Text>
+                </View>
+                <View style={styles.benefitItem}>
+                  <Text style={styles.benefitEmoji}>🏆</Text>
+                  <Text style={styles.benefitText}>Crea e gestisci tornei</Text>
+                </View>
+              </View>
+            </View>
+          </View>
         </ScrollView>
       </View>
     );
   }
 
-  return (
-    <View style={commonStyles.container}>
-      <AppHeader />
-      <RolesModal />
-      <DemoSelectorModal />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <TouchableOpacity
-          style={styles.demoBanner}
-          onPress={() => setShowDemoSelector(true)}
-        >
-          <Text style={styles.demoBannerEmoji}>🎭</Text>
-          <View style={styles.demoBannerContent}>
-            <Text style={styles.demoBannerTitle}>Modalità Demo</Text>
-            <Text style={styles.demoBannerSubtitle}>
-              Profilo: {currentUser?.displayName} ({currentUser?.role === 'superuser' ? 'Superuser' : currentUser?.role === 'verified' ? 'Verificato' : currentUser?.role === 'club_manager' ? 'Responsabile Società' : 'Regular'})
-            </Text>
-          </View>
-          <IconSymbol
-            ios_icon_name="chevron.right"
-            android_material_icon_name="chevron_right"
-            size={24}
-            color={colors.primary}
-          />
-        </TouchableOpacity>
+  const getUserQualificationLabel = () => {
+    // This would come from user profile in real app
+    return 'Atleta'; // or 'Genitore', 'Spettatore'
+  };
 
-        <View style={styles.header}>
+  const getUserQualificationEmoji = () => {
+    return '⚽'; // or '👨‍👩‍👧', '👀'
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'regular': return 'Utente';
+      case 'verified': return 'Delegato Verificato';
+      case 'club_manager': return 'Manager Società';
+      case 'superuser': return 'Amministratore';
+      default: return 'Utente';
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'verified': return colors.secondary;
+      case 'club_manager': return colors.primary;
+      case 'superuser': return colors.live;
+      default: return colors.textSecondary;
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <AppHeader />
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        {/* Profile Header */}
+        <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            {currentUser?.photoURL ? (
-              <Image source={{ uri: currentUser.photoURL }} style={styles.avatarImage} />
+            {user.photoURL ? (
+              <Image source={{ uri: user.photoURL }} style={styles.avatar} />
             ) : (
-              <View style={styles.avatar}>
-                <IconSymbol
-                  ios_icon_name="person.fill"
-                  android_material_icon_name="person"
-                  size={48}
-                  color={colors.card}
-                />
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                </Text>
               </View>
             )}
-            {isVerified && (
-              <View style={styles.verifiedBadge}>
-                <Text style={styles.verifiedEmoji}>✅</Text>
-              </View>
-            )}
-            {isSuperuser && (
-              <View style={styles.superuserBadge}>
-                <Text style={styles.superuserEmoji}>👑</Text>
-              </View>
-            )}
-            {isClubManager && (
-              <View style={styles.clubManagerBadge}>
-                <Text style={styles.clubManagerEmoji}>🏢</Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.name}>{currentUser?.displayName || 'Marco Rossi'}</Text>
-          <Text style={styles.location}>{currentUser?.favoriteCity || 'Milano'}, Lombardia</Text>
-          
-          {isVerified && currentUser?.organizerRole && (
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>{currentUser.organizerRole}</Text>
+            <View style={[styles.roleBadge, { backgroundColor: getRoleColor(user.role) }]}>
+              <Text style={styles.roleBadgeText}>{getRoleLabel(user.role)}</Text>
             </View>
-          )}
+          </View>
+
+          <Text style={styles.userName}>{user.displayName}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
+
+          <View style={styles.qualificationBadge}>
+            <Text style={styles.qualificationEmoji}>{getUserQualificationEmoji()}</Text>
+            <Text style={styles.qualificationText}>{getUserQualificationLabel()}</Text>
+          </View>
         </View>
 
-        {isSuperuser && (
-          <View style={styles.adminSection}>
-            <TouchableOpacity
-              style={styles.adminButton}
-              onPress={() => router.push('/admin/dashboard')}
-            >
-              <Text style={styles.adminButtonEmoji}>👑</Text>
-              <Text style={styles.adminButtonText}>Dashboard Admin</Text>
-              <IconSymbol
-                ios_icon_name="chevron.right"
-                android_material_icon_name="chevron_right"
-                size={24}
-                color="#000"
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isVerified && (
-          <View style={styles.delegateSection}>
-            <TouchableOpacity
-              style={styles.delegateButton}
-              onPress={() => router.push('/delegate/dashboard')}
-            >
-              <Text style={styles.delegateButtonEmoji}>✅</Text>
-              <View style={styles.delegateButtonContent}>
-                <Text style={styles.delegateButtonTitle}>Dashboard Delegato</Text>
-                <Text style={styles.delegateButtonSubtitle}>
-                  Gestisci tornei, squadre e caricamenti massivi
-                </Text>
-              </View>
-              <IconSymbol
-                ios_icon_name="chevron.right"
-                android_material_icon_name="chevron_right"
-                size={24}
-                color={colors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isClubManager && (
-          <View style={styles.clubSection}>
-            <TouchableOpacity
-              style={styles.clubButton}
-              onPress={() => router.push('/club/dashboard')}
-            >
-              <Text style={styles.clubButtonEmoji}>🏢</Text>
-              <View style={styles.clubButtonContent}>
-                <Text style={styles.clubButtonTitle}>Gestione Società</Text>
-                <Text style={styles.clubButtonSubtitle}>
-                  Gestisci squadre, atleti e iscrizioni tornei
-                </Text>
-              </View>
-              <IconSymbol
-                ios_icon_name="chevron.right"
-                android_material_icon_name="chevron_right"
-                size={24}
-                color={colors.secondary}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {!isVerified && !isSuperuser && !isClubManager && (
-          <View style={styles.verificationSection}>
-            <TouchableOpacity
-              style={styles.verificationButton}
-              onPress={() => router.push('/profile/request-verification')}
-            >
-              <Text style={styles.verificationButtonEmoji}>✅</Text>
-              <View style={styles.verificationButtonContent}>
-                <Text style={styles.verificationButtonTitle}>Richiedi Account Verificato</Text>
-                <Text style={styles.verificationButtonSubtitle}>
-                  Crea tornei ufficiali e gestisci organizzazioni
-                </Text>
-              </View>
-              <IconSymbol
-                ios_icon_name="chevron.right"
-                android_material_icon_name="chevron_right"
-                size={24}
-                color={colors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-
+        {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <IconSymbol
-              ios_icon_name="gamecontroller.fill"
-              android_material_icon_name="sports_esports"
-              size={32}
-              color={colors.primary}
-            />
-            <Text style={styles.statValue}>{currentUser?.matchesSubmitted || 42}</Text>
+            <Text style={styles.statValue}>{user.matchesSubmitted}</Text>
             <Text style={styles.statLabel}>Partite</Text>
           </View>
-
           <View style={styles.statCard}>
-            <IconSymbol
-              ios_icon_name="trophy.fill"
-              android_material_icon_name="emoji_events"
-              size={32}
-              color={colors.secondary}
-            />
-            <Text style={styles.statValue}>{currentUser?.tournamentsCreated || 2}</Text>
+            <Text style={styles.statValue}>{user.tournamentsCreated}</Text>
             <Text style={styles.statLabel}>Tornei</Text>
           </View>
-
           <View style={styles.statCard}>
-            <IconSymbol
-              ios_icon_name="chart.bar.fill"
-              android_material_icon_name="bar_chart"
-              size={32}
-              color={colors.accent}
-            />
-            <Text style={styles.statValue}>{currentUser?.trustScore || 92}%</Text>
+            <Text style={styles.statValue}>{user.trustScore}</Text>
             <Text style={styles.statLabel}>Trust Score</Text>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>I Miei Sport</Text>
-          <View style={styles.sportsContainer}>
-            {(currentUser?.favoriteSports || ['calcio', 'basket']).map((sport, index) => {
-              const sportData = sportIcons[sport];
-              return (
-                <React.Fragment key={index}>
-                  <View style={[
-                    styles.sportBadge,
-                    { backgroundColor: `${sportData.color}20` }
-                  ]}>
-                    <Text style={styles.sportBadgeEmoji}>{sportData.emoji}</Text>
-                  </View>
-                </React.Fragment>
-              );
-            })}
+        {/* Favorites Summary */}
+        <View style={styles.favoritesSection}>
+          <Text style={styles.sectionTitle}>I Tuoi Preferiti</Text>
+          <View style={styles.favoritesGrid}>
+            <TouchableOpacity
+              style={styles.favoriteCard}
+              onPress={() => router.push('/(tabs)/favorites')}
+            >
+              <Text style={styles.favoriteEmoji}>🏆</Text>
+              <Text style={styles.favoriteValue}>{favoriteTournaments.length}</Text>
+              <Text style={styles.favoriteLabel}>Tornei</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.favoriteCard}
+              onPress={() => router.push('/(tabs)/favorites')}
+            >
+              <Text style={styles.favoriteEmoji}>📊</Text>
+              <Text style={styles.favoriteValue}>{favoriteGroups.length}</Text>
+              <Text style={styles.favoriteLabel}>Gironi</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.favoriteCard}
+              onPress={() => router.push('/(tabs)/favorites')}
+            >
+              <Text style={styles.favoriteEmoji}>⚽</Text>
+              <Text style={styles.favoriteValue}>{favoriteTeams.length}</Text>
+              <Text style={styles.favoriteLabel}>Squadre</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Impostazioni</Text>
-          
+        {/* Preferred Sports */}
+        {user.favoriteSports && user.favoriteSports.length > 0 && (
+          <View style={styles.sportsSection}>
+            <Text style={styles.sectionTitle}>Sport Preferiti</Text>
+            <View style={styles.sportsGrid}>
+              {user.favoriteSports.map((sport, index) => (
+                <React.Fragment key={index}>
+                  <View style={styles.sportChip}>
+                    <Text style={styles.sportChipEmoji}>
+                      {sport === 'calcio' ? '⚽' :
+                       sport === 'basket' ? '🏀' :
+                       sport === 'volley' ? '🏐' : '🎾'}
+                    </Text>
+                    <Text style={styles.sportChipText}>
+                      {sport === 'calcio' ? 'Calcio' :
+                       sport === 'basket' ? 'Basket' :
+                       sport === 'volley' ? 'Volley' : 'Padel'}
+                    </Text>
+                  </View>
+                </React.Fragment>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Menu Options */}
+        <View style={styles.menuSection}>
           <TouchableOpacity
-            style={styles.menuButton}
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/notifications')}
+          >
+            <View style={styles.menuIcon}>
+              <IconSymbol
+                ios_icon_name="bell.fill"
+                android_material_icon_name="notifications"
+                size={24}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.menuText}>Notifiche</Text>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron_right"
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/(tabs)/favorites')}
+          >
+            <View style={styles.menuIcon}>
+              <IconSymbol
+                ios_icon_name="heart.fill"
+                android_material_icon_name="favorite"
+                size={24}
+                color={colors.live}
+              />
+            </View>
+            <Text style={styles.menuText}>Preferiti</Text>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron_right"
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
             onPress={() => router.push('/settings/language')}
           >
-            <View style={styles.menuButtonIcon}>
-              <Text style={styles.menuButtonEmoji}>🌍</Text>
+            <View style={styles.menuIcon}>
+              <IconSymbol
+                ios_icon_name="globe"
+                android_material_icon_name="language"
+                size={24}
+                color={colors.secondary}
+              />
             </View>
-            <View style={styles.menuButtonContent}>
-              <Text style={styles.menuButtonText}>Lingua e Formato</Text>
-              <Text style={styles.menuButtonSubtext}>
-                {language === 'it' ? 'Italiano 🇮🇹' : 'English 🇬🇧'}
-              </Text>
-            </View>
+            <Text style={styles.menuText}>Lingua</Text>
             <IconSymbol
               ios_icon_name="chevron.right"
               android_material_icon_name="chevron_right"
-              size={24}
+              size={20}
               color={colors.textSecondary}
             />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => router.push('/organizers/')}
-          >
-            <View style={styles.menuButtonIcon}>
-              <Text style={styles.menuButtonEmoji}>🏢</Text>
-            </View>
-            <View style={styles.menuButtonContent}>
-              <Text style={styles.menuButtonText}>Organizzatori Sportivi</Text>
-              <Text style={styles.menuButtonSubtext}>
-                Esplora federazioni e organizzazioni
-              </Text>
-            </View>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron_right"
-              size={24}
-              color={colors.textSecondary}
-            />
-          </TouchableOpacity>
+          {user.role === 'club_manager' && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/club/dashboard')}
+            >
+              <View style={styles.menuIcon}>
+                <IconSymbol
+                  ios_icon_name="building.2.fill"
+                  android_material_icon_name="business"
+                  size={24}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={styles.menuText}>Gestione Società</Text>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron_right"
+                size={20}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
 
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => setShowRolesModal(true)}
-          >
-            <View style={styles.menuButtonIcon}>
-              <Text style={styles.menuButtonEmoji}>ℹ️</Text>
-            </View>
-            <View style={styles.menuButtonContent}>
-              <Text style={styles.menuButtonText}>Scopri i Ruoli Utente</Text>
-              <Text style={styles.menuButtonSubtext}>
-                Informazioni sui diversi tipi di account
-              </Text>
-            </View>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron_right"
-              size={24}
-              color={colors.textSecondary}
-            />
-          </TouchableOpacity>
+          {(user.role === 'verified' || user.role === 'superuser') && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/delegate/dashboard')}
+            >
+              <View style={styles.menuIcon}>
+                <IconSymbol
+                  ios_icon_name="checkmark.seal.fill"
+                  android_material_icon_name="verified"
+                  size={24}
+                  color={colors.secondary}
+                />
+              </View>
+              <Text style={styles.menuText}>Dashboard Delegato</Text>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron_right"
+                size={20}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
+
+          {user.role === 'superuser' && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/admin/dashboard')}
+            >
+              <View style={styles.menuIcon}>
+                <IconSymbol
+                  ios_icon_name="shield.fill"
+                  android_material_icon_name="admin_panel_settings"
+                  size={24}
+                  color={colors.live}
+                />
+              </View>
+              <Text style={styles.menuText}>Admin Dashboard</Text>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron_right"
+                size={20}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
         </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <IconSymbol
+            ios_icon_name="arrow.right.square.fill"
+            android_material_icon_name="logout"
+            size={20}
+            color={colors.live}
+          />
+          <Text style={styles.logoutButtonText}>Esci</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
     flex: 1,
   },
-  scrollContent: {
+  contentContainer: {
     paddingTop: 120,
-    paddingBottom: 120,
+    paddingBottom: 100,
+    paddingHorizontal: spacing.lg,
   },
-  guestContent: {
-    paddingTop: 140,
-    paddingHorizontal: 24,
+  profileHeader: {
     alignItems: 'center',
-    paddingBottom: 120,
+    marginBottom: spacing.xl,
   },
-  demoBanner: {
-    flexDirection: 'row',
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: spacing.md,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 4,
+    borderColor: colors.card,
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.primary,
     alignItems: 'center',
-    backgroundColor: '#FFF3E0',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFB74D',
-  },
-  demoBannerEmoji: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-  demoBannerContent: {
-    flex: 1,
-  },
-  demoBannerTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  demoBannerSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    borderWidth: 4,
+    borderColor: colors.card,
   },
-  modalContent: {
-    backgroundColor: colors.card,
-    borderRadius: 20,
-    padding: 24,
-    width: '100%',
-    maxWidth: 500,
-    maxHeight: '80%',
+  avatarText: {
+    fontSize: 40,
+    fontWeight: '900',
+    color: colors.card,
   },
-  modalTitle: {
+  roleBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: -10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    ...shadows.md,
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.card,
+  },
+  userName: {
     fontSize: 24,
     fontWeight: '900',
     color: colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
+    marginBottom: spacing.xs,
   },
-  modalSubtitle: {
+  userEmail: {
     fontSize: 14,
+    fontWeight: '600',
     color: colors.textSecondary,
-    marginBottom: 20,
-    textAlign: 'center',
+    marginBottom: spacing.md,
   },
-  roleCard: {
+  qualificationBadge: {
     flexDirection: 'row',
-    backgroundColor: colors.background,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    gap: spacing.sm,
+    ...shadows.sm,
   },
-  roleEmoji: {
-    fontSize: 32,
-    marginRight: 12,
+  qualificationEmoji: {
+    fontSize: 20,
   },
-  roleInfo: {
-    flex: 1,
-  },
-  roleName: {
-    fontSize: 18,
+  qualificationText: {
+    fontSize: 14,
     fontWeight: '800',
     color: colors.text,
-    marginBottom: 8,
   },
-  roleDescription: {
-    fontSize: 14,
+  statsContainer: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  statValue: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '600',
     color: colors.textSecondary,
-    lineHeight: 20,
   },
-  demoUserCard: {
+  favoritesSection: {
+    marginBottom: spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  favoritesGrid: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  favoriteCard: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  favoriteEmoji: {
+    fontSize: 32,
+    marginBottom: spacing.sm,
+  },
+  favoriteValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  favoriteLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  sportsSection: {
+    marginBottom: spacing.xl,
+  },
+  sportsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  sportChip: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    gap: spacing.sm,
+    ...shadows.sm,
+  },
+  sportChipEmoji: {
+    fontSize: 18,
+  },
+  sportChipText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  menuSection: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: spacing.xl,
+    ...shadows.sm,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray300,
+  },
+  menuIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
     backgroundColor: colors.background,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
   },
-  demoUserCardActive: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}10`,
-  },
-  demoUserEmoji: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-  demoUserInfo: {
+  menuText: {
     flex: 1,
-  },
-  demoUserName: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 2,
   },
-  demoUserRole: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  modalCloseButton: {
-    backgroundColor: colors.primary,
-    padding: 16,
-    borderRadius: 12,
+  logoutButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.lg,
+    gap: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.live,
   },
-  modalCloseText: {
+  logoutButtonText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: colors.card,
+    fontWeight: '800',
+    color: colors.live,
+  },
+  guestState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
   },
   guestEmoji: {
-    fontSize: 96,
-    marginBottom: 24,
+    fontSize: 80,
+    marginBottom: spacing.lg,
   },
   guestTitle: {
     fontSize: 28,
     fontWeight: '900',
     color: colors.text,
+    marginBottom: spacing.md,
     textAlign: 'center',
-    marginBottom: 12,
   },
-  guestSubtitle: {
+  guestText: {
     fontSize: 16,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 40,
     lineHeight: 24,
+    marginBottom: spacing.xl,
   },
-  featuresList: {
+  guestButtons: {
     width: '100%',
-    marginBottom: 40,
-    gap: 16,
+    gap: spacing.md,
+    marginBottom: spacing.xxl,
   },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  featureText: {
-    fontSize: 16,
-    color: colors.text,
-    fontWeight: '600',
-    flex: 1,
-  },
-  registerButton: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.card,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-    marginBottom: 16,
-  },
-  socialButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.text,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  socialButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.card,
-  },
-  googleIcon: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.card,
-  },
-  loginLink: {
-    alignItems: 'center',
-  },
-  loginLinkText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  loginLinkBold: {
-    fontWeight: '800',
-    color: colors.primary,
-  },
-  header: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  avatarContainer: {
-    marginBottom: 16,
-    position: 'relative',
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  guestButtonPrimary: {
     backgroundColor: colors.primary,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 4,
-    borderColor: colors.card,
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-    elevation: 4,
+    ...shadows.md,
   },
-  avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: colors.card,
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-    elevation: 4,
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.calcio,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.card,
-  },
-  verifiedEmoji: {
+  guestButtonPrimaryText: {
     fontSize: 18,
+    fontWeight: '900',
+    color: colors.card,
   },
-  superuserBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FFD700',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.card,
-  },
-  superuserEmoji: {
-    fontSize: 18,
-  },
-  clubManagerBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.card,
-  },
-  clubManagerEmoji: {
-    fontSize: 18,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  location: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  roleBadge: {
-    backgroundColor: colors.primary,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginTop: 8,
-  },
-  roleText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  adminSection: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  adminButton: {
-    backgroundColor: '#FFD700',
-    borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    boxShadow: '0px 4px 12px rgba(255, 215, 0, 0.3)',
-    elevation: 4,
-  },
-  adminButtonEmoji: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  adminButtonText: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#000',
-  },
-  delegateSection: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  delegateButton: {
+  guestButtonSecondary: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.calcio,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 2,
-  },
-  delegateButtonEmoji: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  delegateButtonContent: {
-    flex: 1,
-  },
-  delegateButtonTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  delegateButtonSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    lineHeight: 18,
-  },
-  clubSection: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  clubButton: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.secondary,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 2,
-  },
-  clubButtonEmoji: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  clubButtonContent: {
-    flex: 1,
-  },
-  clubButtonTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  clubButtonSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    lineHeight: 18,
-  },
-  verificationSection: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  verificationButton: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: colors.primary,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 2,
   },
-  verificationButtonEmoji: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  verificationButtonContent: {
-    flex: 1,
-  },
-  verificationButtonTitle: {
-    fontSize: 16,
+  guestButtonSecondaryText: {
+    fontSize: 18,
     fontWeight: '800',
-    color: colors.text,
-    marginBottom: 4,
+    color: colors.primary,
   },
-  verificationButtonSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    lineHeight: 18,
+  benefitsSection: {
+    width: '100%',
   },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 12,
-    marginBottom: 32,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    elevation: 2,
-  },
-  statValue: {
-    fontSize: 28,
+  benefitsTitle: {
+    fontSize: 20,
     fontWeight: '900',
     color: colors.text,
-    marginTop: 8,
-    marginBottom: 4,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
   },
-  statLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '600',
+  benefitsList: {
+    gap: spacing.md,
   },
-  section: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 16,
-  },
-  sportsContainer: {
+  benefitItem: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  sportBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sportBadgeEmoji: {
-    fontSize: 40,
-  },
-  menuButton: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    elevation: 2,
-    marginBottom: 12,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...shadows.sm,
   },
-  menuButtonIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+  benefitEmoji: {
+    fontSize: 28,
   },
-  menuButtonEmoji: {
-    fontSize: 24,
-  },
-  menuButtonContent: {
+  benefitText: {
     flex: 1,
-  },
-  menuButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 2,
-  },
-  menuButtonSubtext: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
   },
 });
