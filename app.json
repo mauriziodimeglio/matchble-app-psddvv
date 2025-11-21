@@ -1,63 +1,54 @@
+
 {
   "expo": {
     "name": "Matchble",
-    "slug": "Matchble",
+    "slug": "matchble",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
+    "icon": "./assets/images/final_quest_240x240.png",
     "scheme": "matchble",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
+      "image": "./assets/images/final_quest_240x240.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F5F5F5"
+      "backgroundColor": "#FF5722"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.matchble.app",
-      "buildNumber": "1",
+      "usesAppleSignIn": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Matchble ha bisogno di accedere alle tue foto per caricare immagini delle partite.",
-        "NSCameraUsageDescription": "Matchble ha bisogno di accedere alla fotocamera per scattare foto delle partite.",
-        "NSLocationWhenInUseUsageDescription": "Matchble usa la tua posizione per mostrare partite e tornei vicini a te."
+        "NSCameraUsageDescription": "Matchble needs access to your camera to upload match photos.",
+        "NSPhotoLibraryUsageDescription": "Matchble needs access to your photo library to upload match photos.",
+        "NSLocationWhenInUseUsageDescription": "Matchble needs your location to show nearby matches and venues."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
-        "backgroundColor": "#F5F5F5"
+        "foregroundImage": "./assets/images/final_quest_240x240.png",
+        "backgroundColor": "#FF5722"
       },
       "package": "com.matchble.app",
-      "versionCode": 1,
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "READ_MEDIA_IMAGES"
-      ]
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/1130396b-2aa5-4881-97af-7f098b638ae7.png"
+      "favicon": "./assets/images/final_quest_240x240.png"
     },
     "plugins": [
       "expo-router",
       [
-        "expo-splash-screen",
+        "expo-apple-authentication",
         {
-          "backgroundColor": "#F5F5F5",
-          "image": "./assets/images/5986e3bc-b857-4410-bbe4-a1b696cf46df.png",
-          "imageWidth": 200
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Matchble ha bisogno di accedere alle tue foto per caricare immagini delle partite.",
-          "cameraPermission": "Matchble ha bisogno di accedere alla fotocamera per scattare foto delle partite."
+          "appleTeamId": "YOUR_APPLE_TEAM_ID"
         }
       ]
     ],
@@ -69,9 +60,16 @@
         "origin": false
       },
       "eas": {
-        "projectId": "your-project-id-here"
-      }
+        "projectId": "your-project-id"
+      },
+      "ADMIN_EMAIL": process.env.ADMIN_EMAIL,
+      "ADMIN_PASSWORD": process.env.ADMIN_PASSWORD,
+      "FIREBASE_API_KEY": process.env.FIREBASE_API_KEY,
+      "FIREBASE_AUTH_DOMAIN": process.env.FIREBASE_AUTH_DOMAIN,
+      "FIREBASE_PROJECT_ID": process.env.FIREBASE_PROJECT_ID,
+      "FIREBASE_STORAGE_BUCKET": process.env.FIREBASE_STORAGE_BUCKET,
+      "FIREBASE_MESSAGING_SENDER_ID": process.env.FIREBASE_MESSAGING_SENDER_ID,
+      "FIREBASE_APP_ID": process.env.FIREBASE_APP_ID
     }
-  },
-  "scheme": "Matchble"
+  }
 }
