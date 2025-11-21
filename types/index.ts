@@ -192,7 +192,7 @@ export interface AthleteProfile {
     mvpAwards?: number;
   };
   
-  clubAssociations: Array<{
+  clubAssociations: {
     clubId: string;
     clubName: string;
     teamId: string;
@@ -201,7 +201,7 @@ export interface AthleteProfile {
     status: AssociationStatus;
     requestedAt: Date;
     acceptedAt?: Date;
-  }>;
+  }[];
   
   availability: {
     monday: boolean;
@@ -466,12 +466,12 @@ export interface FirestoreMatch {
   liveStreamId?: string;
   
   notes: string[];
-  comments: Array<{
+  comments: {
     userId: string;
     userName: string;
     text: string;
     createdAt: Date;
-  }>;
+  }[];
   
   submittedBy: string;
   submittedByName: string;
@@ -710,13 +710,13 @@ export interface BulkUploadTournament {
 export interface BulkUploadMatchDay {
   tournamentId: string;
   date: string;
-  matches: Array<{
+  matches: {
     homeTeam: string;
     awayTeam: string;
     homeScore?: number;
     awayScore?: number;
     venueId: string;
-  }>;
+  }[];
 }
 
 export interface BulkUploadMatch {

@@ -164,11 +164,11 @@ export interface PermissionCategory {
   id: string;
   name: string;
   emoji: string;
-  permissions: Array<{
+  permissions: {
     key: keyof PermissionsType;
     label: string;
     description: string;
-  }>;
+  }[];
 }
 
 export const PERMISSION_CATEGORIES: PermissionCategory[] = [
@@ -332,7 +332,7 @@ export function hasPermission(
 /**
  * Helper function to get all enabled permissions
  */
-export function getEnabledPermissions(permissions: PermissionsType): Array<keyof PermissionsType> {
+export function getEnabledPermissions(permissions: PermissionsType): (keyof PermissionsType)[] {
   return Object.entries(permissions)
     .filter(([_, value]) => value === true)
     .map(([key]) => key as keyof PermissionsType);

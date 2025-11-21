@@ -101,14 +101,14 @@ export default function RegisterScreen() {
     router.push('/auth/select-role');
   };
 
-  const sports: Array<{ id: Sport; name: string; emoji: string }> = [
+  const sports: { id: Sport; name: string; emoji: string }[] = [
     { id: 'calcio', name: 'Calcio', emoji: '⚽' },
     { id: 'basket', name: 'Basket', emoji: '🏀' },
     { id: 'volley', name: 'Volley', emoji: '🏐' },
     { id: 'padel', name: 'Padel', emoji: '🎾' },
   ];
 
-  const userTypes: Array<{ id: 'athlete' | 'parent' | 'spectator'; name: string; emoji: string; description: string }> = [
+  const userTypes: { id: 'athlete' | 'parent' | 'spectator'; name: string; emoji: string; description: string }[] = [
     { id: 'athlete', name: 'Atleta', emoji: '⚽', description: 'Gioco attivamente' },
     { id: 'parent', name: 'Genitore', emoji: '👨‍👩‍👧', description: 'Seguo mio figlio/a' },
     { id: 'spectator', name: 'Spettatore', emoji: '👀', description: 'Seguo lo sport' },

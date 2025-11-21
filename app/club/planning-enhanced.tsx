@@ -18,7 +18,7 @@ interface TimeSlot {
   activity?: Activity;
 }
 
-const daysOfWeek: Array<{ id: DayOfWeek; label: string; short: string }> = [
+const daysOfWeek: { id: DayOfWeek; label: string; short: string }[] = [
   { id: 'monday', label: 'Lunedì', short: 'Lun' },
   { id: 'tuesday', label: 'Martedì', short: 'Mar' },
   { id: 'wednesday', label: 'Mercoledì', short: 'Mer' },

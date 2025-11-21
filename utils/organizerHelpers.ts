@@ -143,9 +143,9 @@ export function getOrganizerDisplayName(organizer: FirestoreOrganizer): string {
  */
 export function createMultipleVerificationRequests(
   user: FirestoreUser,
-  organizerRoles: Array<{ organizerId: string; role: string }>,
+  organizerRoles: { organizerId: string; role: string }[],
   data: Partial<FirestoreVerificationRequest>
-): Array<Omit<FirestoreVerificationRequest, 'id'>> {
+): Omit<FirestoreVerificationRequest, 'id'>[] {
   return organizerRoles.map(({ organizerId, role }) => {
     const organizer = getOrganizerById(organizerId);
     

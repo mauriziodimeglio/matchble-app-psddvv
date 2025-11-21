@@ -120,7 +120,7 @@ export default function AthleteShowcase() {
     },
   ];
 
-  const sports: Array<Sport | 'all'> = ['all', 'calcio', 'basket', 'volley', 'padel'];
+  const sports: (Sport | 'all')[] = ['all', 'calcio', 'basket', 'volley', 'padel'];
   const sportEmojis: Record<Sport | 'all', string> = {
     all: '🏆',
     calcio: '⚽',

@@ -86,7 +86,7 @@ export async function fetchOfficialTournaments(
     const data = await response.json();
 
     // Transform API response to our tournament format
-    const tournaments: Partial<FirestoreTournament>[] = data.map((item: any) => ({
+    const tournaments: Partial<FirestoreTournament>[] = data.map((item: { name: string }) => ({
       name: item.name,
       sport: sport,
       isOfficial: true,
@@ -109,12 +109,12 @@ export async function fetchOfficialTournaments(
 /**
  * Get list of available official data sources
  */
-export function getAvailableOfficialSources(): Array<{
+export function getAvailableOfficialSources(): {
   id: string;
   name: string;
   available: boolean;
   method: 'api' | 'manual' | 'rss';
-}> {
+}[] {
   return [
     {
       id: 'figc',

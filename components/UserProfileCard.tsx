@@ -3,11 +3,18 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { FirestoreUser } from '@/types';
 import { getTrustScoreBadge } from '@/utils/firestoreHelpers';
-import { colors, sportLabels } from '@/styles/commonStyles';
+import { colors } from '@/styles/commonStyles';
 
 interface UserProfileCardProps {
   user: FirestoreUser;
 }
+
+const sportLabels: Record<string, string> = {
+  calcio: 'Calcio',
+  basket: 'Basket',
+  volley: 'Volley',
+  padel: 'Padel'
+};
 
 export function UserProfileCard({ user }: UserProfileCardProps) {
   const trustBadge = getTrustScoreBadge(user.trustScore);
@@ -110,13 +117,6 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     </View>
   );
 }
-
-const sportLabels: Record<string, string> = {
-  calcio: 'Calcio',
-  basket: 'Basket',
-  volley: 'Volley',
-  padel: 'Padel'
-};
 
 const styles = StyleSheet.create({
   container: {
